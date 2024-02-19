@@ -8,7 +8,7 @@ file	id=4,name="src/init.asm",size=2679,mtime=0x65D3B3C8,mod=0
 file	id=5,name="src/main.asm",size=430,mtime=0x65D3BB90,mod=0
 file	id=6,name="src/nmi.asm",size=210,mtime=0x65D3BB51,mod=0
 file	id=7,name="src/spc_comm.asm",size=1098,mtime=0x65D3C1F6,mod=0
-file	id=8,name="src/spc/driver.bin",size=256,mtime=0x65D3C493,mod=0
+file	id=8,name="src/spc/driver.bin",size=256,mtime=0x65D3D56D,mod=0
 line	id=0,file=7,line=34,span=159
 line	id=1,file=1,line=381
 line	id=2,file=0,line=25,span=13
