@@ -52,5 +52,5 @@ SPC_transfer_size:      .res 2
 
 .segment "BANK1"
 spc_driver:
-    .incbin "src/spc/driver.bin"
+    .incbin "output/spcdriver.bin"
 spc_driver_end:

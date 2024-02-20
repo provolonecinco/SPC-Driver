@@ -303,7 +303,7 @@ seg	id=3,name="DATA",start=0x000000,size=0x0000,addrsize=absolute,type=rw
 seg	id=4,name="ZEROPAGE",start=0x000000,size=0x0000,addrsize=zeropage,type=rw
 seg	id=5,name="NULL",start=0x000000,size=0x0000,addrsize=absolute,type=rw
 seg	id=6,name="SPCZEROPAGE",start=0x000000,size=0x0002,addrsize=absolute,type=rw
-seg	id=7,name="SPCDRIVER",start=0x000200,size=0x001F,addrsize=absolute,type=ro,oname="src/spc/driver.bin",ooffs=0
+seg	id=7,name="SPCDRIVER",start=0x000200,size=0x001F,addrsize=absolute,type=ro,oname="output/spcdriver.bin",ooffs=0
 span	id=0,seg=6,start=0,size=1
 span	id=1,seg=6,start=1,size=1
 span	id=2,seg=7,start=0,size=1,type=0
