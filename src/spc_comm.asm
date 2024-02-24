@@ -1,5 +1,14 @@
 DRIVER_SIZE =   (spc_driver_end - spc_driver)
+.include "snes.inc"
+.export spc_boot
+.smart
 
+.segment "ZEROPAGE"
+SPC_transfer_pointer:   .res 3
+SPC_transfer_counter:   .res 1
+SPC_transfer_size:      .res 2
+
+.segment "BANK0"
 .proc spc_boot
     seta8
     setxy16
@@ -58,4 +67,10 @@ transfer_driver:
 
     setxy8
     RTS 
-.endproc 
+.endproc
+
+.segment "BANK1"
+spc_driver:
+    .incbin "output/spcdriver.bin"
+spc_driver_end:
+

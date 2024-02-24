@@ -1,9 +1,9 @@
 version	major=2,minor=0
 info	csym=0,file=4,lib=0,line=291,mod=1,scope=2,seg=8,span=40,sym=46,type=3
-file	id=0,name="src/spc/spc.asm",size=565,mtime=0x65D3C338,mod=0
-file	id=1,name="src/spc/spc-65c02.inc",size=5689,mtime=0x65D3B3C8,mod=0
-file	id=2,name="src/spc/spc-ca65.inc",size=11654,mtime=0x65D3B3C8,mod=0
-file	id=3,name="src/spc/spc_defines.inc",size=1243,mtime=0x65D3B3C8,mod=0
+file	id=0,name="spc/spc.asm",size=565,mtime=0x65D3C338,mod=0
+file	id=1,name="spc/spc-65c02.inc",size=5689,mtime=0x65D3B3C8,mod=0
+file	id=2,name="spc/spc-ca65.inc",size=11654,mtime=0x65D3B3C8,mod=0
+file	id=3,name="spc/spc_defines.inc",size=1243,mtime=0x65D3B3C8,mod=0
 line	id=0,file=2,line=151,type=2,count=2
 line	id=1,file=0,line=25,span=22
 line	id=2,file=2,line=220,type=2,count=3

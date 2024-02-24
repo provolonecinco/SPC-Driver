@@ -1,3 +1,15 @@
+.exportzp framecounter
+.include "snes.inc"
+.import spc_boot
+.export mainprep
+.smart
+
+.segment "ZEROPAGE"
+framecounter:           .res 1
+temp:                   .res 4
+pointer:                .res 3
+
+.segment "BANK0"
 .proc mainprep
     setaxy8
 

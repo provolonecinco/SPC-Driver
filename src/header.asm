@@ -1,9 +1,10 @@
 ; Definition of the internal header and vectors at $00FFC0-$00FFFF
-.include "src/snes.inc"
-.include "src/defines.inc"
+.include "snes.inc"
+.include "defines.inc"
 .smart
 .p816
-
+.import RESET, NMI, IRQ
+.export map_mode
 
 .segment "HEADER"
 romname:
@@ -29,28 +30,21 @@ map_mode:
     .addr ecop_handler, $FFFF, eabort_handler
     .addr enmi_handler, RESET, eirq_handler
 
-  .segment "ZEROPAGE"
-framecounter:           .res 1
-joy0_status:            .res 2
-joy0_held:              .res 2
-temp:                   .res 4
-pointer:                .res 3
-SPC_transfer_pointer:   .res 3
-SPC_transfer_counter:   .res 1
-SPC_transfer_size:      .res 2
-
-.segment "LORAM"
-
-.segment "HIRAM"
-  
 .segment "BANK0"
-    .include "src/vectorstub.asm"
-    .include "src/init.asm"
-    .include "src/main.asm"
-    .include "src/nmi.asm"
-    .include "src/spc_comm.asm"
+    ; Jumping out of bank $00 is especially important if you're using
+; ROMSPEED_120NS.
+NMI_stub:
+  jml NMI 
 
-.segment "BANK1"
-spc_driver:
-    .incbin "output/spcdriver.bin"
-spc_driver_end:
+IRQ_stub:
+  jml IRQ
+
+; Unused exception handlers
+cop_handler:
+brk_handler:
+abort_handler:
+ecop_handler:
+eabort_handler:
+enmi_handler:
+eirq_handler:
+  rti

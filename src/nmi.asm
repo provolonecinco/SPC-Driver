@@ -1,3 +1,9 @@
+.importzp framecounter
+.export NMI, IRQ
+.include "snes.inc"
+.smart
+
+.segment "BANK0"
 .proc NMI 
     PHA         
     PHX         
