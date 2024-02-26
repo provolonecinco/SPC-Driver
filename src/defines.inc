@@ -22,6 +22,7 @@ BG1MAP_BASE     = $6000
 BG2MAP_BASE     = $7000
 
 BGOFFSET        = 128
+
 .macro LDPT addr
     LDA #<addr
     STA pointer 
@@ -29,4 +30,22 @@ BGOFFSET        = 128
     STA pointer + 1
     LDA #^addr
     STA pointer + 2
+.endmacro
+
+.macro SETUPDMA channel, type, source, size, dest
+    setaxy8
+    LDA #type 
+    STA DMAMODE | channel << 4
+    LDA #<dest
+    STA DMAPPUREG | channel << 4
+    LDA #<source
+    STA DMAADDR | channel << 4
+    LDA #>source
+    STA DMAADDRHI | channel << 4
+    LDA #^source
+    STA DMAADDRBANK | channel << 4
+    LDA #<size 
+    STA DMALEN | channel << 4
+    LDA #>size 
+    STA DMALENHI | channel << 4
 .endmacro

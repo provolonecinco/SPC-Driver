@@ -1,4 +1,5 @@
 .importzp framecounter
+.import OAMDMA, CGRAMDMA
 .export NMI, IRQ
 .include "snes.inc"
 .smart
@@ -11,6 +12,9 @@
     setaxy8  
     bit a:NMISTATUS
 
+
+    JSR OAMDMA
+    JSR CGRAMDMA
 
     INC framecounter
 	PLY       
