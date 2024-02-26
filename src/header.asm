@@ -8,11 +8,10 @@
 
 .segment "HEADER"
 romname:
-    ; The ROM name must be no longer than 21 characters.
-    .byte "yoey sound           "
+    .res 21                                         ; <= 21 bytes
 map_mode:
-    .byte $30                                       ; LoROM, FastROM (120ns)
-    .byte $00                                       ; 00: no extra RAM; 02: RAM with battery
+    .byte MAPPER_LOROM | ROMSPEED_120NS             ; LoROM, FastROM (120ns)
+    .byte MEMSIZE_NONE                              ; 00: no extra RAM; 02: RAM with battery
     .byte MEMSIZE_256KB                             ; ROM size
     .byte MEMSIZE_NONE                              ; backup RAM size 
     .byte REGION_AMERICA
