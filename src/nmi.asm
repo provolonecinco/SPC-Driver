@@ -2,7 +2,7 @@
 .import OAMDMA, CGRAMDMA
 .export NMI, IRQ
 .include "snes.inc"
-.smart
+
 
 .segment "BANK0"
 .proc NMI 

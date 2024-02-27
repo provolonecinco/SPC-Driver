@@ -1,7 +1,6 @@
 .import mainprep, map_mode
 .export RESET
 .include "snes.inc"
-.smart
 
 ; Mask off low byte to allow use of $000000-$00000F as local variables
 ZEROPAGE_BASE   = $000000 & $FF00
