@@ -1,7 +1,7 @@
 .exportzp framecounter
 .include "snes.inc"
 .include "defines.inc"
-.import spc_boot, clearRAM, CGRAMbuf, OAMbuf
+.import spc_boot, clearRAM, CGRAMbuf, OAMbuf, OAMbuf_hi
 .export mainprep
 .smart
 
@@ -36,17 +36,19 @@ tile:
                          
     LDA #%00010000                          ; enable OBJ layer
     STA TM
-    LDA #(SPRITECHR_BASE >> 14) | OBSIZE_16_32
+    LDA #(SPRITECHR_BASE >> 14) | OBSIZE_8_16
     STA OBSEL 
 
-    LDA #%10001111                          ; enable NMI, screen brightness = $F (on)
-    STA PPUNMI
+    LDA #%00001111                          ; screen brightness = $F (on)
+    STA INIDISP
+    LDA #%10000000                          ; enable NMI at VBlank 
+    STA NMITIMEN
 
 load_sprite:
-    LDA #$1F
-    STA CGRAMbuf + ($71 * 2)
+    LDA #$1F                                ; set color to red
+    STA CGRAMbuf + ($81 * 2)
 
-    LDA #16
+    LDA #16                                 ; load tile into vram
     STA VMADDL
     STZ VMADDH
     LDX #0
@@ -60,12 +62,14 @@ load_sprite:
     CPX #32
     BNE :-
 
-    LDA #128
+    LDA #128                                ; set OAM entry
     STA OAMbuf
+    LDA #112
     STA OAMbuf + 1
     LDA #1
     STA OAMbuf + 2
     STZ OAMbuf + 3
+    STZ OAMbuf_hi
 
     JMP main 
 .endproc     
@@ -75,7 +79,7 @@ load_sprite:
     LDA #$00
     TAX 
     TAY 
-   
+    INC OAMbuf
 
     LDA framecounter
 WaitVBlank:

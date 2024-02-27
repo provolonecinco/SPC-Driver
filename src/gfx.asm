@@ -1,4 +1,4 @@
-.export OAMDMA, CGRAMDMA, CGRAMbuf, OAMbuf
+.export OAMDMA, CGRAMDMA, CGRAMbuf, OAMbuf, OAMbuf_hi
 .include "defines.inc"
 .include "snes.inc"
 
