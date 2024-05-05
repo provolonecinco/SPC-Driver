@@ -41,4 +41,7 @@ DSP_SAMPDIR  = $5D  ; High byte of base address of sample table
       .assert addr <= $00FE, error, "stya works only in zero page"
       movw <addr, ya
     .endmacro
+
+; Driver-Specific
+NUM_CHANNELS  = 6
     

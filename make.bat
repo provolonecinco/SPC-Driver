@@ -12,4 +12,4 @@ ca65 --cpu 65816 -s -g src/spc_comm.asm -o output/obj/spc_comm.o
 
 ld65 -C lorom256k.cfg --dbgfile output/debug/sound.dbg --obj-path output/obj header.o init.o main.o gfx.o nmi.o spc_comm.o -o output/sound.sfc
 
-start mesen.exe C://Users/ranchodelrey/Desktop/ASM/"SPC Driver"/output/sound.sfc
+start mesen.exe output/sound.sfc
