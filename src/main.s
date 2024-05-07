@@ -68,7 +68,7 @@ load_sprite:
     LDA #1
     STA OAMbuf + 2
     STZ OAMbuf + 3
-    STZ OAMbuf_hi
+    STZ OAMbuf_hi 
 
     JMP main 
 .endproc     
