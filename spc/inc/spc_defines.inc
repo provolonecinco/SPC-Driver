@@ -6,12 +6,12 @@ CPU0    =   $F4
 CPU1    =   $F5
 CPU2    =   $F6
 CPU3    =   $F7
-T0DIV   =   $F8
-T1DIV   =   $F9
-T2DIV   =   $FA
-T0OUT   =   $FB
-T1OUT   =   $FC
-T2OUT   =   $FD
+T0DIV   =   $FA
+T1DIV   =   $FB
+T2DIV   =   $FC
+T0OUT   =   $FD
+T1OUT   =   $FE
+T2OUT   =   $FF
 
 DSP_CLVOL    = $00
 DSP_CRVOL    = $01
@@ -43,5 +43,9 @@ DSP_SAMPDIR  = $5D  ; High byte of base address of sample table
     .endmacro
 
 ; Driver-Specific
+UPDATE_DIV    = 240  ; 15ms = 120, 30ms = 240  
 NUM_CHANNELS  = 6
+
+SPC_BUSY  = 7
+
     

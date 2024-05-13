@@ -25,10 +25,10 @@ SPC_CA65_INC = 1
 ; d, !a, (X), [d+X], 
 .macro _op_a op, val
 	.if .xmatch (.left (1, {val}), !)
-		.if .xmatch (.right (2, {val}), +x)
+		.if .xmatch (.right (2, {val}), +X)
 			.byte $15+op ; !a+X
 			.word .mid (1, .tcount ({val})-3, {val})
-		.elseif .xmatch (.right (2, {val}), +y)
+		.elseif .xmatch (.right (2, {val}), +Y)
 			.byte $16+op ; !a+Y
 			.word .mid (1, .tcount ({val})-3, {val})
 		.else
@@ -36,28 +36,28 @@ SPC_CA65_INC = 1
 			.word .right (.tcount ({val})-1, {val})
 		.endif
 	.elseif .xmatch (.left (1, {val}), [)
-		.if .xmatch (.right (3, {val}), +x])
+		.if .xmatch (.right (3, {val}), +X])
 			.byte $07+op, .mid (1, .tcount ({val})-4, {val}) ; [d+X]
-		.elseif .xmatch (.right (3, {val}), ]+y)
+		.elseif .xmatch (.right (3, {val}), ]+Y)
 			.byte $17+op, .mid (1, .tcount ({val})-4, {val}) ; [d]+Y
 		.else
 			.assert 0, error, "unrecognized [] addressing mode"
 		.endif
-	.elseif .xmatch ({val}, {(x)})
+	.elseif .xmatch ({val}, {(X)})
 		.byte $06+op ; (X)
 	.elseif ::DEFAULT_ABS && (!.xmatch (.left (1, {val}), <))
 		_op_warn_default_abs
-		.if .xmatch (.right (2, {val}), +x)
+		.if .xmatch (.right (2, {val}), +X)
 			.byte $15+op ; a+X
 			.word .left (.tcount ({val})-2, {val})
-		.elseif .xmatch (.right (2, {val}), +y)
+		.elseif .xmatch (.right (2, {val}), +Y)
 			.byte $16+op ; a+Y
 			.word .left (.tcount ({val})-2, {val})
 		.else
 			.byte $05+op ; a
 			.word val
 		.endif
-	.elseif .xmatch (.right (2, {val}), +x)
+	.elseif .xmatch (.right (2, {val}), +X)
 		.byte $14+op, .left (.tcount ({val})-2, {val}) ; d+X
 	.else
 		.byte $04+op, val ; d
@@ -73,7 +73,7 @@ SPC_CA65_INC = 1
 .endmacro
 
 .macro _arith_a op, dest, src
-	.if .xmatch (.left (1, {dest}), a)
+	.if .xmatch (.left (1, {dest}), A)
 		_op_imm op, src ; a, src
 	.elseif .xmatch (.left (1, {src}), #)
 		.byte $18+op, .right (.tcount ({src})-1, {src}), dest ; d, #
@@ -93,11 +93,11 @@ SPC_CA65_INC = 1
 ;**** MOV dest, src
 
 .macro _mov_a op, op_xplus, val
-	.if .xmatch ({val}, {(x)+})
+	.if .xmatch ({val}, {(X)+})
 		.byte op_xplus ; (X)+
-	.elseif .xmatch ({val}, x)
+	.elseif .xmatch ({val}, X)
 		.byte op-$63 ; x
-	.elseif .xmatch ({val}, y)
+	.elseif .xmatch ({val}, Y)
 		.byte op-$03 ; y
 	.else
 		_op_imm op, {val}
@@ -108,7 +108,7 @@ SPC_CA65_INC = 1
 	.if .xmatch (.left (1, {val}), !)
 		.byte $ec-op
 		.word .right (.tcount ({val})-1, {val})
-	.elseif .xmatch (.right (2, {val}), +x)
+	.elseif .xmatch (.right (2, {val}), +X)
 		.byte $fb-op, .left (.tcount ({val})-2, {val})
 	.elseif ::DEFAULT_ABS && (!.xmatch (.left (1, {val}), <))
 		_op_warn_default_abs
@@ -123,7 +123,7 @@ SPC_CA65_INC = 1
 	.if .xmatch (.left (1, {val}), !)
 		.byte $e9-op
 		.word .right (.tcount ({val})-1, {val})
-	.elseif .xmatch (.right (2, {val}), +y)
+	.elseif .xmatch (.right (2, {val}), +Y)
 		.byte $f9-op, .left (.tcount ({val})-2, {val})
 	.elseif ::DEFAULT_ABS && (!.xmatch (.left (1, {val}), <))
 		_op_warn_default_abs
@@ -135,33 +135,33 @@ SPC_CA65_INC = 1
 .endmacro
 
 .macro mov dest, src
-	.if .xmatch ({dest}, y)
+	.if .xmatch ({dest}, Y)
 		.if .xmatch (.left (1, {src}), #)
 			.byte $8d, .right (.tcount ({src})-1, {src})
-		.elseif .xmatch ({src}, a)
+		.elseif .xmatch ({src}, A)
 			.byte $fd ; a (inconsistent encoding)
 		.else
 			_mov_y 0, {src}
 		.endif
-	.elseif .xmatch ({dest}, a)
+	.elseif .xmatch ({dest}, A)
 		_mov_a $e0, $BF, src ; MOV A, src
-	.elseif .xmatch ({src}, a)
+	.elseif .xmatch ({src}, A)
 		_mov_a $c0, $AF, dest ; MOV dest, A
-	.elseif .xmatch ({dest}, x)
+	.elseif .xmatch ({dest}, X)
 		.if .xmatch (.left (1, {src}), #)
 			.byte $cd, .right (.tcount ({src})-1, {src})
-		.elseif .xmatch ({src}, sp)
+		.elseif .xmatch ({src}, SP)
 			.byte $9d
 		.else
 			_mov_x 0, src
 		.endif
-	.elseif .xmatch ({src}, x)
-		.if .xmatch ({dest}, sp)
+	.elseif .xmatch ({src}, X)
+		.if .xmatch ({dest}, SP)
 			.byte $BD
 		.else
 			_mov_x $20, dest
 		.endif
-	.elseif .xmatch ({src}, y)
+	.elseif .xmatch ({src}, Y)
 		_mov_y $20, {dest}
 	.elseif .xmatch (.left (1, {src}), #)
 		.byte $8f, .right (.tcount ({src})-1, {src}), dest
@@ -188,9 +188,9 @@ SPC_CA65_INC = 1
 .endmacro
 
 .macro cmp_ dest, src
-	.if .xmatch ({dest}, x)
+	.if .xmatch ({dest}, X)
 		_cmp_xy 0, $c8, {src}
-	.elseif .xmatch ({dest}, y)
+	.elseif .xmatch ({dest}, Y)
 		_cmp_xy $40, $ad, {src}
 	.else
 		_arith_a $60, dest, src
@@ -200,12 +200,12 @@ SPC_CA65_INC = 1
 ;**** RMW dest
 
 .macro _op_shift op, val
-	.if .xmatch ({val}, a)
+	.if .xmatch ({val}, A)
 		.byte $1c+op ; A
 	.elseif .xmatch (.left (1, {val}), !)
 		.byte $0c+op ; !a
 		.word .right (.tcount ({val})-1, {val})
-	.elseif .xmatch (.right (2, {val}), +x)
+	.elseif .xmatch (.right (2, {val}), +X)
 		.byte $1b+op, .left (.tcount ({val})-2, {val})
 	.elseif ::DEFAULT_ABS && (!.xmatch (.left (1, {val}), <))
 		_op_warn_default_abs
@@ -217,9 +217,9 @@ SPC_CA65_INC = 1
 .endmacro
 
 .macro _inc_dec op, val
-	.if .xmatch ({val}, x)
+	.if .xmatch ({val}, X)
 		.byte $1d+op ; x
-	.elseif .xmatch ({val}, y)
+	.elseif .xmatch ({val}, Y)
 		.byte $dc+op ; y
 	.else
 		_op_shift $80+op, {val}
@@ -236,13 +236,13 @@ SPC_CA65_INC = 1
 ;**** PUSH/POP
 
 .macro _push_pop op, val
-	.if .xmatch ({val}, a)
+	.if .xmatch ({val}, A)
 		.byte $2d+op
-	.elseif .xmatch ({val}, x)
+	.elseif .xmatch ({val}, X)
 		.byte $4d+op
-	.elseif .xmatch ({val}, y)
+	.elseif .xmatch ({val}, Y)
 		.byte $6d+op
-	.elseif .xmatch ({val}, psw)
+	.elseif .xmatch ({val}, PSW)
 		.byte $0d+op
 	.else
 		.assert 0, error, "invalid register"
@@ -294,7 +294,7 @@ SPC_CA65_INC = 1
 .endmacro
 
 .macro dbnz val, target
-	.if .xmatch ({val}, y)
+	.if .xmatch ({val}, Y)
 		_op_branch $fe, target
 	.else
 		_op_branch {$6e, val}, (target)
@@ -302,7 +302,7 @@ SPC_CA65_INC = 1
 .endmacro
 
 .macro cbne val, target
-	.if .xmatch (.right (2, {val}), +x)
+	.if .xmatch (.right (2, {val}), +X)
 		_branch_offset {.byte $de, .left (.tcount ({val})-2, {val})}, target
 	.else
 		_branch_offset {.byte $2e, val}, target
@@ -339,10 +339,10 @@ SPC_CA65_INC = 1
 .define call  _op_abs $3F, ; abs
 
 .macro jmp_ val; ****
-	.if .xmatch (.left (2, {val}), [!) && .xmatch (.right (3, {val}), +x])
+	.if .xmatch (.left (2, {val}), [!) && .xmatch (.right (3, {val}), +X])
 		.byte $1f
 		.word .mid (2, .tcount ({val})-5, {val})
-	.elseif ::DEFAULT_ABS && .xmatch (.left (1, {val}), [) && .xmatch (.right (3, {val}), +x])
+	.elseif ::DEFAULT_ABS && .xmatch (.left (1, {val}), [) && .xmatch (.right (3, {val}), +X])
 		_op_warn_default_abs
 		.byte $1f
 		.word .mid (1, .tcount ({val})-4, {val})
@@ -369,7 +369,7 @@ SPC_CA65_INC = 1
 .endmacro
 
 .macro _op_mbit_c op, carry, val
-	.if .xmatch (carry, c)
+	.if .xmatch (carry, C)
 		_op_mbit op, val
 	.else
 		.assert 0, error, "destination must be C"
@@ -390,7 +390,7 @@ SPC_CA65_INC = 1
 .define eor1 _op_mbit_inv $8A, ; abs.bit
 
 .macro mov1 dest, src
-	.if .xmatch ({src}, c)
+	.if .xmatch ({src}, C)
 		_op_mbit_c $CA, src, dest
 	.else
 		_op_mbit_c $AA, dest, src
@@ -426,7 +426,7 @@ SPC_CA65_INC = 1
 .define subw _op_w $9A, ; dp
 
 .macro movw dest, src
-	.if .xmatch ({src}, ya)
+	.if .xmatch ({src}, YA)
 		_op_w $DA, src, dest
 	.else
 		_op_w $BA, dest, src
@@ -434,17 +434,17 @@ SPC_CA65_INC = 1
 .endmacro
 
 .macro div dest, src
-	.if .xmatch ({dest}, ya) && .xmatch ({src}, x)
+	.if .xmatch ({dest}, YA) && .xmatch ({src}, X)
 		.byte $9e
 	.else
-		.assert 0, error, "only supports ya, x"
+		.assert 0, error, "only supports YA, X"
 	.endif
 .endmacro
 
-.define xcn _op_one_reg $9f, a, "only supports a",
-.define das _op_one_reg $BE, a, "only supports a",
-.define daa _op_one_reg $DF, a, "only supports a",
-.define mul _op_one_reg $CF, ya, "only supports ya",
+.define xcn _op_one_reg $9f, a, "only supports A",
+.define das _op_one_reg $BE, a, "only supports A",
+.define daa _op_one_reg $DF, a, "only supports A",
+.define mul _op_one_reg $CF, ya, "only supports YA",
 
 ;**** Unique
 
@@ -495,4 +495,61 @@ SPC_CA65_INC = 1
 	.define jmp jmp_
 .endif
 
-;.endif
+; add uppercase syntax
+.define NOP nop		
+.define BRK brk		
+.define CLRP clrp	
+.define SETP setp	
+.define CLRC clrc	
+.define RET ret		
+.define RETI reti	
+.define SETC setc	
+.define EI ei		
+.define DI di		
+.define CLRV clrv	
+.define NOTC notc	
+.define SLEEP sleep	
+.define STOP stop	
+.define CMP cmp_
+.define DEC dec_
+.define INC inc_
+.define LSR lsr_
+.define ASL asl_
+.define ROL rol_
+.define ROR ror_
+.define JMP jmp
+.define MOV mov
+.define XCN xcn 
+.define DAS das 
+.define DAA daa 
+.define MUL mul 
+.define OR or   
+.define AND and_ 
+.define EOR eor_ 
+.define ADC adc_
+.define SBC sbc_
+.define PUSH push 
+.define POP pop  
+.define SET1 set1 
+.define CLR1 clr1 
+.define BPL bpl 
+.define BRA bra
+.define BMI bmi 
+.define BVC bvc 
+.define BVS bvs 
+.define BCC bcc 
+.define BCS bcs 
+.define BNE bne 
+.define BEQ beq 
+.define TSET1 tset1 
+.define TCLR1 tclr1 
+.define CALL call 
+.define NOT1 not1 
+.define OR1 or1  
+.define AND1 and1 
+.define EOR1 eor1 
+.define DECW decw 
+.define INCW incw 
+.define CMPW cmpw 
+.define ADDW addw 
+.define SUBW subw 
