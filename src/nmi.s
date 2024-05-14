@@ -1,5 +1,5 @@
 .importzp framecounter
-.import OAMDMA, CGRAMDMA
+.import OAMDMA, CGRAMDMA, spc_transfer
 .export NMI, IRQ
 .include "snes.inc"
 
@@ -17,6 +17,11 @@
     JSR CGRAMDMA
 
     INC framecounter
+    
+    LDX framecounter    ; run update once every 256 frames
+    BNE :+
+    JSR spc_transfer
+:
 	PLY       
     PLX
     PLA         

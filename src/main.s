@@ -38,11 +38,6 @@ tile:
     LDA #(SPRITECHR_BASE >> 14) | OBSIZE_8_16
     STA OBSEL 
 
-    LDA #%00001111                          ; screen brightness = $F (on)
-    STA INIDISP
-    LDA #%10000000                          ; enable NMI at VBlank 
-    STA NMITIMEN
-
 load_sprite:
     LDA #$1F                                ; set color to red
     STA CGRAMbuf + ($81 * 2)
@@ -70,6 +65,11 @@ load_sprite:
     STZ OAMbuf + 3
     STZ OAMbuf_hi 
 
+    LDA #%00001111                          ; screen brightness = $F (on)
+    STA INIDISP
+    LDA #%10000000                          ; enable NMI at VBlank 
+    STA NMITIMEN
+    
     JMP main 
 .endproc     
 

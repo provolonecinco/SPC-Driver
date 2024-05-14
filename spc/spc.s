@@ -1,3 +1,5 @@
+.globalzp tmp0, tmp1, tmp2, tmp3, buf_T0DIV, buf_CONTROL
+.export wait_tick
 .import communicate_snes
 
 .setcpu "none"
@@ -9,6 +11,7 @@ tmp0:               .res 1
 tmp1:               .res 1
 tmp2:               .res 1
 tmp3:               .res 1
+buf_T0DIV:          .res 1
 buf_CONTROL:        .res 1
 buf_CPU0:           .res 1
 buf_CPU1:           .res 1
@@ -32,7 +35,8 @@ buf_KEYOFF:         .res NUM_CHANNELS
 spc_entrypoint:
     CALL !driver_init
 wait_tick:
-; TODO: INSERT CODE TO CHECK IF SNES IS ATTEMPTING HANDSHAKE
+    MOV A, CPU0                 ; check for communication
+    BMI communicate_snes
 
     MOV A, T0OUT                ; Wait for Timer 0 to change
     BEQ wait_tick
@@ -57,6 +61,7 @@ wait_tick:
     MOV CONTROL, A
     
     MOV A, #UPDATE_DIV          ; Set 30ms timer
+    MOV buf_T0DIV, A
     MOV T0DIV, A
     MOV A, #1
     MOV CONTROL, A

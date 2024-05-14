@@ -1,6 +1,6 @@
 DRIVER_SIZE =   (spc_driver_end - spc_driver)
 .include "snes.inc"
-.export spc_boot
+.export spc_boot, spc_transfer
 
 .segment "ZEROPAGE"
 SPC_transfer_pointer:   .res 3
@@ -66,6 +66,34 @@ transfer_driver:
 
     setxy8
     RTS 
+.endproc
+
+.proc spc_transfer
+    setaxy8
+    STZ PPUNMI      ; disable NMI/IRQ
+
+    LDA #$80
+    STA APU0
+:
+    LDA APU1        ; Wait for SPC to mimic data (Should I add a timeout?)
+    CMP #$80
+    BNE :-
+
+    LDA #$80
+    STA APU3
+handshake_complete:
+    LDA APU3        ; wait for SPC to terminate communication
+    CMP #$80
+    BNE handshake_complete
+
+    STZ APU0
+    STZ APU1
+    STZ APU2 
+    STZ APU3
+
+    LDA #$80        ; reenable NMI
+    STA PPUNMI
+    RTS
 .endproc
 
 .segment "BANK1"
