@@ -1,11 +1,8 @@
-.export communicate_snes
-.import wait_tick
-.importzp tmp0, tmp1, tmp2, tmp3, buf_T0DIV, buf_CONTROL
-
 .setcpu "none"
 .include "inc/spc-65c02.inc"
-.include "inc/spc_defines.inc" 
+.include "inc/spc_defines.inc"
 .include "inc/transfer.inc"
+.include "inc/main.inc" 
 ;--------------------------------------
 .segment "SPCZEROPAGE"    
 transfer_addr:      .res 2

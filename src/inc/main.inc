@@ -1,0 +1,2 @@
+.globalzp framecounter
+.global mainprep

@@ -1,6 +1,6 @@
-.export OAMDMA, CGRAMDMA, CGRAMbuf, OAMbuf, OAMbuf_hi
-.include "defines.inc"
-.include "snes.inc"
+.include "inc/defines.inc"
+.include "inc/snes.inc"
+.include "inc/gfx.inc"
 
 .segment "LORAM"
 OAMbuf:         .res 512    

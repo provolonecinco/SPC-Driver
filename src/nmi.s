@@ -1,7 +1,9 @@
-.importzp framecounter
-.import OAMDMA, CGRAMDMA, spc_transfer
+.include "inc/main.inc"
+.include "inc/gfx.inc"
+.include "inc/spc_comm.inc"
+.include "inc/snes.inc"
 .export NMI, IRQ
-.include "snes.inc"
+
 
 
 .segment "BANK0"

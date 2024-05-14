@@ -1,0 +1,1 @@
+.global spc_boot, spc_transfer

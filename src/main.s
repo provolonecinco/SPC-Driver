@@ -1,8 +1,8 @@
-.exportzp framecounter
-.include "snes.inc"
-.include "defines.inc"
-.import spc_boot, clearRAM, CGRAMbuf, OAMbuf, OAMbuf_hi
-.export mainprep
+.include "inc/snes.inc"
+.include "inc/defines.inc"
+.include "inc/main.inc"
+.include "inc/spc_comm.inc"
+.include "inc/gfx.inc"
 
 .segment "ZEROPAGE"
 framecounter:           .res 1

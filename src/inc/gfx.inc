@@ -1,0 +1,1 @@
+.global OAMDMA, CGRAMDMA, CGRAMbuf, OAMbuf, OAMbuf_hi

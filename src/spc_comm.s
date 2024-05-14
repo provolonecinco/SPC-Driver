@@ -1,6 +1,7 @@
+.include "inc/snes.inc"
+.include "inc/spc_comm.inc"
+
 DRIVER_SIZE =   (spc_driver_end - spc_driver)
-.include "snes.inc"
-.export spc_boot, spc_transfer
 
 .segment "ZEROPAGE"
 SPC_transfer_pointer:   .res 3

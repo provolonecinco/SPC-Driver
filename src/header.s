@@ -1,6 +1,6 @@
 ; Definition of the internal header and vectors at $00FFC0-$00FFFF
-.include "snes.inc"
-.include "defines.inc"
+.include "inc/snes.inc"
+.include "inc/defines.inc"
 .import RESET, NMI, IRQ
 .export map_mode
 

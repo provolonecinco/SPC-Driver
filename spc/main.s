@@ -1,10 +1,9 @@
-.globalzp tmp0, tmp1, tmp2, tmp3, buf_T0DIV, buf_CONTROL
-.export wait_tick
-.import communicate_snes
 ;--------------------------------------
 .setcpu "none"
 .include "inc/spc-65c02.inc"
 .include "inc/spc_defines.inc" 
+.include "inc/main.inc"
+.include "inc/transfer.inc"
 ;--------------------------------------
 .segment "SPCZEROPAGE"    
 tmp0:               .res 1
