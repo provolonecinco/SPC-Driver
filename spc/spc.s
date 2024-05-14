@@ -1,11 +1,11 @@
 .globalzp tmp0, tmp1, tmp2, tmp3, buf_T0DIV, buf_CONTROL
 .export wait_tick
 .import communicate_snes
-
+;--------------------------------------
 .setcpu "none"
 .include "inc/spc-65c02.inc"
 .include "inc/spc_defines.inc" 
-
+;--------------------------------------
 .segment "SPCZEROPAGE"    
 tmp0:               .res 1
 tmp1:               .res 1
@@ -29,7 +29,7 @@ buf_LECHOVOL:       .res NUM_CHANNELS
 buf_RECHOVOL:       .res NUM_CHANNELS
 buf_KEYON:          .res NUM_CHANNELS
 buf_KEYOFF:         .res NUM_CHANNELS
-
+;--------------------------------------
 .segment "SPCDRIVER"
 ;--------------------------------------
 spc_entrypoint:

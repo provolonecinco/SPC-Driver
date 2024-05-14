@@ -6,65 +6,27 @@
 .include "inc/spc-65c02.inc"
 .include "inc/spc_defines.inc" 
 .include "inc/transfer.inc"
-
+;--------------------------------------
 .segment "SPCZEROPAGE"    
 transfer_addr:      .res 2
-
+;--------------------------------------
 .segment "SPCDRIVER"
+jump_table:
+    .word bulk_transfer
+;--------------------------------------
 .proc communicate_snes
-; TODO: once handshake is confirmed read from I/O to determine request
     MOV A, #0                   ; Disable timers
     MOV CONTROL, A
     
-    MOV A, CPU0                 ; Mimic on Port 1
-    MOV CPU1, A
-    
-recieve:
-    NOP
-    NOP
-    NOP
-    NOP
-    NOP
-    NOP
-    NOP
-    NOP
-    NOP
-    NOP
-    NOP
-    NOP
-    NOP
-    NOP
-    NOP
-    NOP
-    NOP
-    NOP
-    NOP
-    NOP
-    NOP
-    NOP
-    NOP
-    NOP
-    NOP
-    NOP
-    NOP
-    NOP
-    NOP
-    NOP
-    NOP
-    MOV A, CPU3                 ; check if we're done
-    BMI :+
-    JMP recieve
-:
-    MOV A, #$80
-    MOV CPU3, A 
+check_opcode:
+    MOV A, CPU0                 ; mask upper 4bits to determine index into jump table
+    AND A, #$0F                 
+    ASL A
+    MOV X, A
+    JMP [!jump_table + X]
 
-    INC tmp1
-
-    MOV CPU0, #0                ; Reset I/O Ports
-    MOV CPU1, #0
-    MOV CPU2, #0
-    MOV CPU3, #0 
-
+done:
+    MOV CONTROL, #%00110000     ; Reset I/O Ports
 
     MOV A, buf_T0DIV            ; Reset timers
     MOV T0DIV, A
@@ -73,3 +35,25 @@ recieve:
 
     JMP wait_tick
 .endproc
+;--------------------------------------
+.proc bulk_transfer
+    MOV A, CPU0                 ; Mimic on Port 1
+    MOV CPU1, A
+
+recieve:
+    INC tmp1
+    .repeat 25                  ; TODO - remove and put actual receiving logic in
+    NOP
+    .endrepeat
+    
+    MOV A, CPU3                 ; check if we're done
+    BMI :+
+    JMP recieve
+:
+    
+    MOV A, #$80                ; signal to end communication                 
+    MOV CPU3, A 
+
+    JMP communicate_snes::done
+.endproc
+;--------------------------------------

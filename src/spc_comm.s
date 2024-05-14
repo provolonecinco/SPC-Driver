@@ -79,14 +79,14 @@ transfer_driver:
     CMP #$80
     BNE :-
 
-    LDA #$80
+    LDA #$80        ; set transfer end flag early for testing (SPC NOPS for a while)
     STA APU3
 handshake_complete:
-    LDA APU3        ; wait for SPC to terminate communication
+    LDA APU3        ; wait for SPC to finish spinning and mimic the termination
     CMP #$80
     BNE handshake_complete
 
-    STZ APU0
+    STZ APU0        ; reset ports
     STZ APU1
     STZ APU2 
     STZ APU3

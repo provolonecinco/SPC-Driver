@@ -18,7 +18,7 @@
 
     INC framecounter
     
-    LDX framecounter    ; run update once every 256 frames
+    LDX framecounter    ; run update once every 256 frames for testing
     BNE :+
     JSR spc_transfer
 :
