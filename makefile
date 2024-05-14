@@ -24,7 +24,7 @@ spc: $(SPC_ROM_NAME)
 
 rom: $(ROM_NAME)
 
-clean: $(ROM_NAME)
+clean:
 	@rmdir /s output
 
 run: $(ROM_NAME)

@@ -19,4 +19,7 @@
 ;   $86 - Unused
 ;   $87 - Unused
 ;   $88 - Unused
-
+;
+;   Valid transfer addresses are $0300 and up. 
+;
+;

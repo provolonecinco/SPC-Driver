@@ -5,8 +5,9 @@ DRIVER_SIZE =   (spc_driver_end - spc_driver)
 
 .segment "ZEROPAGE"
 SPC_transfer_pointer:   .res 3
-SPC_transfer_counter:   .res 1
 SPC_transfer_size:      .res 2
+SPC_transfer_counter:   .res 1
+SPC_target_addr:        .res 2
 
 .segment "BANK0"
 .proc spc_boot
@@ -69,20 +70,45 @@ transfer_driver:
     RTS 
 .endproc
 
-.proc spc_transfer
+.proc spc_bulktransfer  ; X = Index into Song table
     setaxy8
     STZ PPUNMI      ; disable NMI/IRQ
 
-    LDA #$80
+    LDA song_bank, X
+    STA SPC_transfer_pointer + 2
+    TXA 
+    ASL 
+    TAX 
+    LDA song_addr, X
+    STA SPC_transfer_pointer
+    INX
+    LDA song_addr, X
+    STA SPC_transfer_pointer + 1
+
+    LDY #0
+    LDA [SPC_transfer_pointer], Y  ; length
+    TAX     
+
+    LDA #SPC_BULK_TRANSFER      ; send opcode
     STA APU0
 :
-    LDA APU1        ; Wait for SPC to mimic data (Should I add a timeout?)
-    CMP #$80
+    LDA APU1                    ; Wait for SPC to mimic data (Should I add a timeout?)
+    CMP #SPC_BULK_TRANSFER
     BNE :-
 
-    LDA #$80        ; set transfer end flag early for testing (SPC NOPS for a while)
-    STA APU3
+    INY
 handshake_complete:
+    LDA [SPC_transfer_pointer], Y
+    STA APU0
+:
+    CMP [SPC_transfer_pointer], Y   ; mimic
+    BNE :-
+    INY 
+    DEX 
+    BNE handshake_complete
+    LDA #SPC_ENDCOMM            ; set transfer end flag early for testing (SPC NOPS for a while)
+    STA APU3
+    
     LDA APU3        ; wait for SPC to finish spinning and mimic the termination
     CMP #$80
     BNE handshake_complete
@@ -98,6 +124,18 @@ handshake_complete:
 .endproc
 
 .segment "BANK1"
+song_addr:
+    .word       sample_data 
+song_bank:
+    .bankbytes  sample_data
+
+sample_data:
+    .byte $10       ; transfer length
+    .word $0300     ; Target SPC Addr
+    .repeat 16      ; test data
+        .byte $88
+    .endrepeat
+
 spc_driver:
     .incbin "output/spcdriver.bin"
 spc_driver_end:

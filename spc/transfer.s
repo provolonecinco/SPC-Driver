@@ -2,9 +2,9 @@
 .include "inc/spc-65c02.inc"
 .include "inc/spc_defines.inc"
 .include "inc/transfer.inc"
-.include "inc/main.inc" 
+.include "inc/spcmain.inc" 
 ;--------------------------------------
-.segment "SPCZEROPAGE"    
+.segment "ZEROPAGE"    
 transfer_addr:      .res 2
 ;--------------------------------------
 .segment "SPCDRIVER"
@@ -37,11 +37,9 @@ done:
     MOV A, CPU0                 ; Mimic on Port 1
     MOV CPU1, A
 
+    ; todo: add logic for recieving data and address
 recieve:
-    INC tmp1
-    .repeat 25                  ; TODO - remove and put actual receiving logic in
-    NOP
-    .endrepeat
+    
     
     MOV A, CPU3                 ; check if we're done
     BMI :+

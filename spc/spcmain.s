@@ -2,10 +2,10 @@
 .setcpu "none"
 .include "inc/spc-65c02.inc"
 .include "inc/spc_defines.inc" 
-.include "inc/main.inc"
+.include "inc/spcmain.inc"
 .include "inc/transfer.inc"
 ;--------------------------------------
-.segment "SPCZEROPAGE"    
+.segment "ZEROPAGE"    
 tmp0:               .res 1
 tmp1:               .res 1
 tmp2:               .res 1
@@ -40,7 +40,7 @@ wait_tick:
     MOV A, T0OUT                ; Wait for Timer 0 to change
     BEQ wait_tick
 
-    CLR1 $09.(SPC_BUSY)         ; Signal SPC is not available for communication
+    CLR1 buf_CPU3.(SPC_BUSY)    ; Signal SPC is not available for communication
     MOV A, buf_CPU3
     MOV CPU3, A
 
@@ -70,7 +70,7 @@ wait_tick:
 .proc driver_update ; unload shadow buffers
     INC tmp0
 
-    SET1 $09.(SPC_BUSY)         ; Signal SPC available for communication
+    SET1 buf_CPU3.(SPC_BUSY)    ; Signal SPC available for communication
     MOV A, buf_CPU3
     MOV CPU3, A
 

@@ -23,7 +23,7 @@ BG2MAP_BASE     = $7000
 
 BGOFFSET        = 128
 
-.macro LDPT addr
+.macro LDPT pointer, addr
     LDA #<addr
     STA pointer 
     LDA #>addr
