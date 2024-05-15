@@ -1,5 +1,4 @@
-.include "inc/defines.inc"
-.include "inc/snes.inc"
+.include "inc/main.inc"
 .include "inc/gfx.inc"
 
 .segment "LORAM"

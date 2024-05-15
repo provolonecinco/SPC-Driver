@@ -1,8 +1,6 @@
 .setcpu "none"
-.include "inc/spc-65c02.inc"
-.include "inc/spc_defines.inc"
+.include "inc/spc.inc" 
 .include "inc/transfer.inc"
-.include "inc/spcmain.inc" 
 ;--------------------------------------
 .segment "ZEROPAGE"    
 transfer_addr:      .res 2
@@ -37,16 +35,14 @@ done:
     MOV A, CPU0                 ; Mimic on Port 1
     MOV CPU1, A
 
-    ; todo: add logic for recieving data and address
 recieve:
-    
-    
+    ; TODO: Write logic to recieve data
     MOV A, CPU3                 ; check if we're done
     BMI :+
     JMP recieve
 :
     
-    MOV A, #$80                ; signal to end communication                 
+    MOV A, #END_COMM            ; signal to end communication                 
     MOV CPU3, A 
 
     JMP communicate_snes::done

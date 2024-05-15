@@ -1,10 +1,7 @@
+.include "inc/zp.inc"
 .include "inc/main.inc"
 .include "inc/gfx.inc"
 .include "inc/spc_comm.inc"
-.include "inc/snes.inc"
-.export NMI, IRQ
-
-
 
 .segment "BANK0"
 .proc NMI 
@@ -27,5 +24,5 @@
 .endproc
 
 .proc IRQ
-
+    RTI
 .endproc

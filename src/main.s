@@ -1,13 +1,7 @@
-.include "inc/snes.inc"
-.include "inc/defines.inc"
+.include "inc/zp.inc"
 .include "inc/main.inc"
-.include "inc/spc_comm.inc"
 .include "inc/gfx.inc"
-
-.segment "ZEROPAGE"
-framecounter:           .res 1
-temp:                   .res 4
-pointer:                .res 3
+.include "inc/spc_comm.inc"
 
 .segment "BANK0"
 null:
@@ -70,8 +64,8 @@ load_sprite:
     LDA #%10000000                          ; enable NMI at VBlank 
     STA NMITIMEN
     
-    LDX #1
-    JSR spc_bulktransfer
+    ;LDX #1
+    ;JSR spc_bulktransfer
 
     JMP main 
 .endproc     

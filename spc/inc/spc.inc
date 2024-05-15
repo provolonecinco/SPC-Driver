@@ -1,3 +1,8 @@
+.globalzp tmp0, tmp1, tmp2, tmp3, buf_T0DIV, buf_CONTROL
+.global wait_tick
+
+.include "spc-65c02.inc"
+
 TEST    =   $F0
 CONTROL =   $F1
 DSPADDR =   $F2
@@ -47,5 +52,3 @@ UPDATE_DIV    = 240  ; 15ms = 120, 30ms = 240
 NUM_CHANNELS  = 6
 
 SPC_BUSY  = 7
-
-    

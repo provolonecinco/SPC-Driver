@@ -1,8 +1,6 @@
 ;--------------------------------------
 .setcpu "none"
-.include "inc/spc-65c02.inc"
-.include "inc/spc_defines.inc" 
-.include "inc/spcmain.inc"
+.include "inc/spc.inc"
 .include "inc/transfer.inc"
 ;--------------------------------------
 .segment "ZEROPAGE"    

@@ -1,4 +1,4 @@
-.PHONY: all clean run dir spc rom
+.PHONY: all clean dir run
 
 OUTPUT := output
 
@@ -18,34 +18,30 @@ PRG_OBJ_FILES := $(patsubst $(SRCDIR)/%.s, $(OBJ_DIR)/%.o, $(PRG_FILES))
 SPC_FILES := $(wildcard $(SPCDIR)/*.s)
 SPC_OBJ_FILES := $(patsubst $(SPCDIR)/%.s, $(OBJ_DIR)/%.o, $(SPC_FILES))
 
-all: $(SPC_ROM_NAME) $(ROM_NAME)
-
-spc: $(SPC_ROM_NAME)
-
-rom: $(ROM_NAME)
+all: dir $(SPC_ROM_NAME) $(ROM_NAME)
 
 clean:
-	@rmdir /s output
-
-run: $(ROM_NAME)
-	@Mesen.exe $(ROM_NAME)
+	@rmdir /s /q output
 
 dir:
-	@md output
-	@md output\obj
+	@mkdir output
+	@mkdir output\obj
+
+run: $(ROM_NAME)
+	@start "C:\Programs\Mesen\Mesen.exe" $(ROM_NAME)
 
 # Link output files into ROM
 $(ROM_NAME): $(PRG_OBJ_FILES)
-	ld65 --dbgfile $(DBG_NAME) -o $@ -C lorom256k.cfg $^
+	@ld65 --dbgfile $(DBG_NAME) -o $@ -C lorom256k.cfg $^
 
 # Assemble 65816 code
 $(OBJ_DIR)/%.o: $(SRCDIR)/%.s
-	ca65 --cpu 65816 -s -g $< -o $@
+	@ca65 --cpu 65816 -s -g $< -o $@
 
-# Build SPC Binary
+# Make SPC Binary
 $(SPC_ROM_NAME): $(SPC_OBJ_FILES)
-	ld65 --dbgfile $(SPC_DBG_NAME) -o $@ -C spc700.cfg $^
+	@ld65 --dbgfile $(SPC_DBG_NAME) -o $@ -C spc700.cfg $^
 
 # Assemble SPC700 code
 $(OBJ_DIR)/%.o: $(SPCDIR)/%.s
-	ca65 -s -g $< -o $@
+	@ca65 -s -g $< -o $@

@@ -1,6 +1,4 @@
 .import map_mode
-.export RESET
-.include "inc/snes.inc"
 .include "inc/main.inc"
 
 ; Mask off low byte to allow use of $000000-$00000F as local variables

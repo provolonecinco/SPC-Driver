@@ -23,3 +23,6 @@
 ;   Valid transfer addresses are $0300 and up. 
 ;
 ;
+
+; Flags --------------
+END_COMM        = $80
