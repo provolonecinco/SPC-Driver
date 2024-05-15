@@ -64,6 +64,10 @@ transfer_driver:
     setaxy8
     STZ PPUNMI              ; disable NMI/IRQ
 
+    LDA #$00                ; send transfer addr
+    STA APU1
+    LDA #$03
+    STA APU2
     LDA #SPC_TRANSFER       ; send opcode
     STA APU0
 :
@@ -71,12 +75,26 @@ transfer_driver:
     CMP #SPC_TRANSFER
     BNE :-
 
+    LDX #0
+    TXY
+    STZ tmp0
 transfer:
-; TODO: Write transfer logic
+    LDA f:sample_data, X
+    STA APU1
+    STY APU0        
+:
+    CPY APU0
+    BNE :-
+    INY
+    INX 
+    CPX #16
     BNE transfer
     
     LDA #SPC_ENDCOMM        ; signal all done
     STA APU3
+:    
+    LDA APU3
+    BPL :-
 
     STZ APU0                ; reset ports
     STZ APU1
@@ -95,8 +113,6 @@ song_bank:
     .bankbytes  sample_data
 
 sample_data:
-    .word $0010             ; transfer length
-    .word $0300             ; Target SPC Addr
     .repeat 16              ; test data
         .byte $88
     .endrepeat

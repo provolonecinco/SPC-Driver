@@ -51,8 +51,8 @@ load_sprite:
     LDA #%10000000                          ; enable NMI at VBlank 
     STA NMITIMEN
     
-    ;LDX #1
-    ;JSR spc_bulktransfer
+    
+    JSR spc_bulktransfer
 
     JMP main 
 .endproc     
