@@ -11,20 +11,7 @@ tile:
     .byte $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00
     .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 
-.proc mainprep
-    STZ VMADDL                              ; prep vram and wram regs                             
-    STZ VMADDH
-    STZ WMADDL  
-    STZ WMADDM
-    STZ WMADDH
-    SETUPDMA 0, $08, null, 512, CGDATA      ; clear CGRAM on channel 0
-    SETUPDMA 1, $09, null, 0, PPUDATA       ; clear VRAM on channel 1
-    SETUPDMA 2, $08, null, 0, WMDATA        ; clear WRAM on channel 2
-    LDA #%00000111                          ; fire away
-    STA COPYSTART
-    LDA #%00000100                          ; run channel 2 again to clear upper 64K of WRAM
-    STA COPYSTART
-
+.proc prg_entry
     JSR spc_boot
                          
     LDA #%00010000                          ; enable OBJ layer

@@ -43,7 +43,7 @@ wait_tick:
     MOV CPU3, A
 
     CALL !driver_update
-    JMP wait_tick 
+    JMP !wait_tick 
 ;--------------------------------------
 .proc driver_init    
     MOV X, #0                   ; zero out DSP regs

@@ -10,13 +10,9 @@
     PHY         
     setaxy8  
     bit a:NMISTATUS
-
-
     JSR OAMDMA
     JSR CGRAMDMA
-
     INC framecounter
-
 	PLY       
     PLX
     PLA         
@@ -24,5 +20,13 @@
 .endproc
 
 .proc IRQ
+    RTI
+.endproc
+
+.proc COP_
+    RTI
+.endproc
+
+.proc BRK_
     RTI
 .endproc

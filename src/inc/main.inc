@@ -1,5 +1,5 @@
-.global RESET, NMI, IRQ
-.global mainprep
+.global RESET, NMI, IRQ, BRK_, COP_
+.global prg_entry, null
 
 .include "snes.inc"
 
@@ -37,7 +37,7 @@ BGOFFSET        = 128
     STA pointer + 2
 .endmacro
 
-.macro SETUPDMA channel, type, source, size, dest
+.macro SETDMA channel, type, source, size, dest
     setaxy8
     LDA #type 
     STA DMAMODE | channel << 4

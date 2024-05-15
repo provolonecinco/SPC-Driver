@@ -1,7 +1,7 @@
 .globalzp tmp0, tmp1, tmp2, tmp3, buf_T0DIV, buf_CONTROL
 .global wait_tick
 
-.include "spc-65c02.inc"
+.include "spc-ca65.inc"
 
 TEST    =   $F0
 CONTROL =   $F1

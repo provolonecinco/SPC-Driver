@@ -11,14 +11,14 @@ CGRAMbuf:       .res 512
 .proc OAMDMA
     STZ OAMADDL
     STZ OAMADDH
-    SETUPDMA 0, $00, OAMbuf, 544, OAMDATA
+    SETDMA 0, $00, OAMbuf, 544, OAMDATA
     LDA #1
     STA COPYSTART
     RTS
 .endproc
 
 .proc CGRAMDMA
-    SETUPDMA 0, $00, CGRAMbuf, 512, CGDATA
+    SETDMA 0, $00, CGRAMbuf, 512, CGDATA
     LDA #1
     STA COPYSTART
     RTS

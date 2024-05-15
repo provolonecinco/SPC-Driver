@@ -28,7 +28,7 @@ done:
     SET1 buf_CONTROL.0
     MOV CONTROL, buf_CONTROL
 
-    JMP wait_tick
+    JMP !wait_tick
 .endproc
 ;--------------------------------------
 .proc bulk_transfer
@@ -39,12 +39,12 @@ recieve:
     ; TODO: Write logic to recieve data
     MOV A, CPU3                 ; check if we're done
     BMI :+
-    JMP recieve
+    JMP !recieve
 :
     
     MOV A, #END_COMM            ; signal to end communication                 
     MOV CPU3, A 
 
-    JMP communicate_snes::done
+    JMP !communicate_snes::done
 .endproc
 ;--------------------------------------
