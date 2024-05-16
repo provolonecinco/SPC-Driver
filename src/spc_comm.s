@@ -60,13 +60,41 @@ transfer_driver:
     RTS 
 .endproc
 
-.proc spc_bulktransfer  ; X = Index into Song table
+.proc load_song ; X = song index
+    setaxy8
+    LDPT SPC_transfer_pointer, sample_data
+    LDA #128
+    STA SPC_transfer_size
+    LDA #$00
+    STA SPC_target_addr
+    LDA #$03
+    STA SPC_target_addr + 1
+
+    JSR spc_bulktransfer    ; pattern data
+    ;JSR spc_bulktransfer    ; instrument data
+    ;JSR spc_bulktransfer    ; sample directory
+    ;JSR spc_bulktransfer    ; samples
+    RTS
+.endproc
+
+.proc play_song ; SPC will start Timer 0
+    setaxy8
+    LDA #SPC_START
+    STA APU0
+:
+    LDA APU1
+    CMP #SPC_START
+    BNE :-
+    RTS
+.endproc 
+
+.proc spc_bulktransfer 
     setaxy8
     STZ PPUNMI              ; disable NMI/IRQ
 
-    LDA #$00                ; send transfer addr
+    LDA SPC_target_addr     ; send transfer addr
     STA APU1
-    LDA #$03
+    LDA SPC_target_addr + 1
     STA APU2
     LDA #SPC_TRANSFER       ; send opcode
     STA APU0
@@ -75,25 +103,27 @@ transfer_driver:
     CMP #SPC_TRANSFER
     BNE :-
 
+    setxy16
     LDX #0
     TXY
     STZ tmp0
 transfer:
-    LDA f:sample_data, X
+    LDA [SPC_transfer_pointer], Y
     STA APU1
-    STY APU0        
+    TYA
+    STA APU0        
 :
-    CPY APU0
+    CMP APU0
     BNE :-
     INY
     INX 
-    CPX #16
+    CPY SPC_transfer_size
     BNE transfer
     
     LDA #SPC_ENDCOMM        ; signal all done
     STA APU3
 :    
-    LDA APU3
+    LDA APU3                ; wait for mimic
     BPL :-
 
     STZ APU0                ; reset ports
@@ -113,8 +143,8 @@ song_bank:
     .bankbytes  sample_data
 
 sample_data:
-    .repeat 16              ; test data
-        .byte $88
+    .repeat 128, I
+        .byte I
     .endrepeat
 
 spc_driver:

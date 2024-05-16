@@ -540,7 +540,9 @@ SPC_CA65_INC = 1
 .define BCC bcc 
 .define BCS bcs 
 .define BNE bne 
-.define BEQ beq 
+.define BEQ beq
+.define BBS bbs 
+.define BBC bbc
 .define TSET1 tset1 
 .define TCLR1 tclr1 
 .define CALL call 

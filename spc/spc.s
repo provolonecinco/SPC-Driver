@@ -30,22 +30,34 @@ buf_KEYOFF:         .res NUM_CHANNELS
 .segment "SPCDRIVER"
 ;--------------------------------------
 spc_entrypoint:
-    CALL !driver_init
-wait_tick:
+    JMP !driver_init
+main:
     MOV A, CPU0                 ; check for communication
     BMI communicate_snes
 
-    MOV A, T0OUT                ; Wait for Timer 0 to change
-    BEQ wait_tick
+    BBC buf_CONTROL.0, main     ; don't check timer unless enabled
+    MOV A, T0OUT                
+    BEQ main
 
     CLR1 buf_CPU3.(SPC_BUSY)    ; Signal SPC is not available for communication
     MOV A, buf_CPU3
     MOV CPU3, A
 
     CALL !driver_update
-    JMP !wait_tick 
+    JMP !main
 ;--------------------------------------
 .proc driver_init    
+    CLRP                        ; Zeropage @ $00XX
+    
+    MOV A, #0                   ; Zero out stack
+:
+    MOV !$0100 + X, A
+    INC X
+    BNE :-
+    
+    MOV X, #$FF                 ; Stack pointer = $01FF
+    MOV SP, X
+
     MOV X, #0                   ; zero out DSP regs
     MOV Y, #0      
 :
@@ -54,15 +66,13 @@ wait_tick:
     INC X 
     BPL :-
 
+    MOV DSPADDR, #DSP_ESA       ; Echo addr = $FF00
+    MOV DSPDATA, #$FF
+
     MOV A, buf_CONTROL          ; Disable IPL ROM and timers
     MOV CONTROL, A
-    
-    MOV A, #UPDATE_DIV          ; Set 30ms timer
-    MOV buf_T0DIV, A
-    MOV T0DIV, A
-    MOV A, #1
-    MOV CONTROL, A
-    RET
+
+    JMP !main
 .endproc
 ;--------------------------------------
 .proc driver_update ; unload shadow buffers

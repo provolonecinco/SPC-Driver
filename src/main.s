@@ -46,13 +46,14 @@ load_sprite:
     STZ OAMbuf + 3
     STZ OAMbuf_hi 
 
+    LDX #0
+    JSR load_song
+    JSR play_song
+    
     LDA #%00001111                          ; screen brightness = $F (on)
     STA INIDISP
     LDA #%10000000                          ; enable NMI at VBlank 
     STA NMITIMEN
-    
-    
-    JSR spc_bulktransfer
 
     JMP main 
 .endproc     
