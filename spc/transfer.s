@@ -57,7 +57,7 @@ done:
     MOV A, CPU0                 ; Mimic on Port 1
     MOV CPU1, A
 
-    MOV buf_T0DIV, #UPDATE_DIV          ; Set 30ms timer
+    MOV buf_T0DIV, #UPDATE_DIV  ; Set 30ms timer
     MOV T0DIV, buf_T0DIV
 
     MOV CONTROL, #%00110001     ; Reset I/O Ports, Set T0

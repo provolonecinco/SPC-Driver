@@ -3,43 +3,62 @@
 
 .include "spc-ca65.inc"
 
-TEST            = $F0
-CONTROL         = $F1
-DSPADDR         = $F2
-DSPDATA         = $F3
-CPU0            = $F4
-CPU1            = $F5
-CPU2            = $F6
-CPU3            = $F7
-T0DIV           = $FA
-T1DIV           = $FB
-T2DIV           = $FC
-T0OUT           = $FD
-T1OUT           = $FE
-T2OUT           = $FF
+TEST    = $F0 ; Testing functions (W)
+CONTROL = $F1 ; Timer, I/O and ROM Control (W
+DSPADDR = $F2 ; DSP Register Index (R/W)
+DSPDATA = $F3 ; DSP Register Data (R/W)                 
+CPU0    = $F4 ; CPU Input and Output Register 0 (R and W)
+CPU1    = $F5 ; CPU Input and Output Register 1 (R and W)
+CPU2    = $F6 ; CPU Input and Output Register 2 (R and W)
+CPU3    = $F7 ; CPU Input and Output Register 3 (R and W)
+AUX4    = $F8 ; External I/O Port P4 (S-SMP Pins 34-27) (R/W) (unused)
+AUX5    = $F9 ; External I/O Port P5 (S-SMP Pins 25-18) (R/W) (unused)
+T0DIV   = $FA ; Timer 0 Divider (for 8000Hz clock source) (W)
+T1DIV   = $FB ; Timer 1 Divider (for 8000Hz clock source) (W)
+T2DIV   = $FC ; Timer 2 Divider (for 64000Hz clock source) (W)
+T0OUT   = $FD ; Timer 0 Output (R)
+T1OUT   = $FE ; Timer 1 Output (R)
+T2OUT   = $FF ; Timer 2 Output (R)
 
-DSP_CLVOL       = $00
-DSP_CRVOL       = $01
-DSP_CFREQLO     = $02 ; Playback frequency in 7.8125 Hz units
-DSP_CFREQHI     = $03 ; (ignored 
-DSP_CSAMPNUM    = $04  
-DSP_CATTACK     = $05 ; 7: set; 6-4: decay rate; 3-0: attack rate
-DSP_CSUSTAIN    = $06 ; 7-5: sustain level; 4-0: sustain decay rate
-DSP_CGAIN       = $07 ; Used only when attack is disabled
+VOLL    = $00 ; Left volume for Voice 0..7 (R/W)
+VOLR    = $01 ; Right volume for Voice 0..7 (R/W)
+PITCHL  = $02 ; Pitch scaler for Voice 0..7, lower 8bit (R/W)
+PITCHH  = $03 ; Pitch scaler for Voice 0..7, upper 6bit (R/W)
+SRCN    = $04 ; Source number for Voice 0..7 (R/W)
+ADSR1   = $05 ; ADSR settings for Voice 0..7, lower 8bit (R/W)
+ADSR2   = $06 ; ADSR settings for Voice 0..7, upper 8bit (R/W)
+GAIN    = $07 ; Gain settings for Voice 0..7 (R/W)
+ENVX    = $08 ; Current envelope value for Voice 0..7 (R)
+OUTX    = $09 ; Current sample value for Voice 0..7 (R)
+;NA      = $0A ; Unused (8 bytes of general-purpose RAM) (R/W)
+;NA      = $0B ; Unused (8 bytes of general-purpose RAM) (R/W)
+MVOLL   = $0C ; Left channel master volume (R/W)
+MVOLR   = $1C ; Right channel master volume (R/W)
+EVOLL   = $2C ; Left channel echo volume (R/W)
+EVOLR   = $3C ; Right channel echo volume (R/W)
+KON     = $4C ; Key On Flags for Voice 0..7 (W)
+KOFF    = $5C ; Key Off Flags for Voice 0..7 (R/W)
+FLG     = $6C ; Reset, Mute, Echo-Write flags and Noise Clock (R/W)
+ENDX    = $7C ; Voice End Flags for Voice 0..7 (R) (W=Ack)
+EFB     = $0D ; Echo feedback volume (R/W)
+;NA      = $1D ; Unused (1 byte of general-purpose RAM) (R/W)
+PMON    = $2D ; Pitch Modulation Enable Flags for Voice 1..7 (R/W)
+NON     = $3D ; Noise Enable Flags for Voice 0..7 (R/W)
+EON     = $4D ; Echo Enable Flags for Voice 0..7 (R/W)
+DIR     = $5D ; Sample table address (R/W)
+ESA     = $6D ; Echo ring buffer address (R/W)
+EDL     = $7D ; Echo delay (ring buffer size) (R/W)
+;NA      = $0E ; Unused (8 bytes of general-purpose RAM) (R/W)
+FIRx    = $0F ; Echo FIR filter coefficient 0..7 (R/W)
 
-DSP_LVOL        = $0C
-DSP_RVOL        = $1C
-DSP_LECHOVOL    = $2C
-DSP_RECHOVOL    = $3C
-DSP_KEYON       = $4C
-DSP_KEYOFF      = $5C
-DSP_FLAGS       = $6C ; 5: disable echo; 4-0: set LFSR rate
-DSP_ECHOFBV     = $0C ; Echo feedback volume
-DSP_FMCH        = $2D ; Modulate these channels' frequency by the amplitude before it
-DSP_NOISECH     = $3D ; Replace these channels with LFSR noise
-DSP_ECHOCH      = $4D ; Echo comes from these channels
-DSP_SAMPDIR     = $5D ; High byte of base address of sample table
-DSP_ESA         = $6D ; Echo ring buffer address (X + 256)
+CH0     = $00 ; AND table for readability
+CH1     = $10
+CH2     = $20
+CH3     = $30
+CH4     = $40
+CH5     = $50
+CH6     = $60
+CH7     = $70
 
 .macro stya addr
     .local addr1
@@ -48,8 +67,12 @@ DSP_ESA         = $6D ; Echo ring buffer address (X + 256)
       movw <addr, ya
     .endmacro
 
-; Driver-Specific
-UPDATE_DIV    = 240  ; 15ms = 120, 30ms = 240  
-NUM_CHANNELS  = 6
+.macro dmov reg, data
+	mov DSPADDR, #reg
+	mov DSPDATA, data
+.endmacro
 
-SPC_BUSY  = 7
+; Driver-Specific
+NUM_CHANNELS    = 1
+UPDATE_DIV      = 240 ; 15ms = 120, 30ms = 240  
+SPC_BUSY        = 7 ; used on CPU3

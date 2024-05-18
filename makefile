@@ -32,7 +32,7 @@ run: $(ROM_NAME)
 
 # Link output files into ROM
 $(ROM_NAME): $(PRG_OBJ_FILES)
-	@ld65 --dbgfile $(DBG_NAME) -o $@ -C lorom256k.cfg $^
+	@ld65 -m output/rom_map.txt --dbgfile $(DBG_NAME) -o $@ -C lorom256k.cfg $^
 
 # Assemble 65816 code
 $(OBJ_DIR)/%.o: $(SRCDIR)/%.s
@@ -40,7 +40,7 @@ $(OBJ_DIR)/%.o: $(SRCDIR)/%.s
 
 # Make SPC Binary
 $(SPC_ROM_NAME): $(SPC_OBJ_FILES)
-	@ld65 --dbgfile $(SPC_DBG_NAME) -o $@ -C spc700.cfg $^
+	@ld65 -m output/spc_map.txt --dbgfile $(SPC_DBG_NAME) -o $@ -C spc700.cfg $^
 
 # Assemble SPC700 code
 $(OBJ_DIR)/%.o: $(SPCDIR)/%.s
