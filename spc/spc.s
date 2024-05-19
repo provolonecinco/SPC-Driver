@@ -1,7 +1,8 @@
 ;--------------------------------------
 .setcpu "none"
 .include "inc/spc.inc"
-.include "inc/transfer.inc"
+.include "inc/comm.inc"
+.include "inc/driver.inc"
 ;--------------------------------------
 .segment "ZEROPAGE"  
 ; General Purpose ------------------- ;  
@@ -15,21 +16,8 @@ buf_CPU0:           .res 1
 buf_CPU1:           .res 1
 buf_CPU2:           .res 1
 buf_CPU3:           .res 1
-; DSP Buffer ------------------------ ;
-buf_CLVOL:          .res NUM_CHANNELS
-buf_CRVOL:          .res NUM_CHANNELS
-buf_CFREQLO:        .res NUM_CHANNELS
-buf_CFREQHI:        .res NUM_CHANNELS
-buf_LVOL:           .res NUM_CHANNELS
-buf_RVOL:           .res NUM_CHANNELS
-buf_LECHOVOL:       .res NUM_CHANNELS
-buf_RECHOVOL:       .res NUM_CHANNELS
-buf_KON:            .res NUM_CHANNELS
-buf_KOFF:           .res NUM_CHANNELS
-; Driver-Specific --------------------;
-patternptr:         .res 2
 ;--------------------------------------
-.segment "SPCDRIVER"
+.segment "DRIVER"
 ;--------------------------------------
 spc_entrypoint:
     JMP !driver_init
@@ -94,24 +82,3 @@ clrdsp:
     RET
 .endproc
 ;--------------------------------------
-.proc play_sample
-    dmov (PITCHL|CH0), #$00     ; set CH0 pitch to whatever the regular samplerate is
-    dmov (PITCHH|CH0), #$10
-    dmov (VOLL|CH0), #$7F       ; CH0 output = max
-    dmov (VOLR|CH0), #$7F
-    dmov (SRCN|CH0), #0         ; sample 0
-
-    dmov (ADSR1|CH0), #$CF
-	dmov (ADSR2|CH0), #$88
-
-    dmov KON, #1 << 0
-    RET
-.endproc 
-;--------------------------------------
-.segment "DIR" ; $0400
-directory:
-    .word sample0, sample0      ; BRR Start, BRR Loop addr
-;--------------------------------------
-.segment "BRR"
-sample0:
-    .incbin "samples/chime.brr" ; test samples

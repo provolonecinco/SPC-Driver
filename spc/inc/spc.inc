@@ -71,8 +71,5 @@ CH7     = $70
 	mov DSPADDR, #reg
 	mov DSPDATA, data
 .endmacro
-
-; Driver-Specific
-NUM_CHANNELS    = 1
-UPDATE_DIV      = 240 ; 15ms = 120, 30ms = 240  
+ 
 SPC_BUSY        = 7 ; used on CPU3

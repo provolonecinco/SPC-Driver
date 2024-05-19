@@ -1,13 +1,14 @@
 .setcpu "none"
 .include "inc/spc.inc" 
-.include "inc/transfer.inc"
+.include "inc/comm.inc"
+.include "inc/driver.inc"
 ;--------------------------------------
 .segment "ZEROPAGE"    
 transfer_addr:      .res 2
 ;--------------------------------------
-.segment "SPCDRIVER"
+.segment "DRIVER"
 jump_table:
-    .word bulk_transfer, start_driver
+    .word bulk_transfer, play_song
 ;--------------------------------------
 .proc communicate_snes
     MOV A, #0                   ; Disable timers
@@ -53,14 +54,3 @@ done:
     JMP !main
 .endproc
 ;--------------------------------------
-.proc start_driver
-    MOV A, CPU0                 ; Mimic on Port 1
-    MOV CPU1, A
-
-    MOV buf_T0DIV, #UPDATE_DIV  ; Set 30ms timer
-    MOV T0DIV, buf_T0DIV
-
-    MOV CONTROL, #%00110001     ; Reset I/O Ports, Set T0
-    MOV buf_CONTROL, #%00110001
-    JMP !main
-.endproc 

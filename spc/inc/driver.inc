@@ -1,0 +1,1 @@
+.global play_sample, play_song

@@ -62,13 +62,6 @@ transfer_driver:
 
 .proc load_song ; X = song index
     setaxy8
-    LDPT SPC_transfer_pointer, sample_data
-    LDA #128
-    STA SPC_transfer_size
-    LDA #$00
-    STA SPC_target_addr
-    LDA #$03
-    STA SPC_target_addr + 1
 
     JSR spc_bulktransfer    ; pattern data
     ;JSR spc_bulktransfer    ; instrument data
@@ -137,16 +130,6 @@ transfer:
 .endproc
 
 .segment "BANK1"
-song_addr:
-    .addr       sample_data 
-song_bank:
-    .bankbytes  sample_data
-
-sample_data:
-    .repeat 128, I
-        .byte I
-    .endrepeat
-
 spc_driver:
     .incbin "output/spcdriver.bin"
 spc_driver_end:
