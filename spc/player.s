@@ -22,7 +22,7 @@ instptr:            .res 2
 ;-------------------------------------
 .proc play_sample
     dmov (PITCHL|CH0), #$00     ; set CH0 pitch to whatever the regular samplerate is
-    dmov (PITCHH|CH0), #$10
+    dmov (PITCHH|CH0), #$08
     dmov (VOLL|CH0), #$7F       ; CH0 output = max
     dmov (VOLR|CH0), #$7F
     dmov (SRCN|CH0), #0         ; sample 0
@@ -70,9 +70,13 @@ pat0:
 inst0:  
     .byte 0, $CF, $88 ; (sample=0), (ADSR=CF88)
 ;--------------------------------------
-pitch_32:
-    .word $1000, $1800, $2000   ; sample notes
+pitch_8:  ; pitchgen.py
+    .word $0400, $043D, $047D, $04C2, $050A, $0557, $05A8, $05FE, $0659, $06BA, $0721, $078D
+pitch_16: 
+    .word $0800, $807A, $08FB, $0983, $0A14, $0AAE, $0B50, $0BFD, $0CB3, $0D74, $0E41, $0F1A
+pitch_32: 
+    .word $1000, $10F4, $11F6, $1307, $1429, $155C, $16A1, $17F9, $1966, $1AE9, $1C82, $1E34
 ;--------------------------------------
 sample0:
-    .incbin "samples/chime.brr" ; test samples
+    .incbin "samples/guitar16.brr" ; test samples
 ;--------------------------------------
