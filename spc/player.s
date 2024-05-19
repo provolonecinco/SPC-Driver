@@ -1,6 +1,8 @@
 .include "inc/spc.inc"
 .include "inc/driver.inc"
 
+NUM_CHANNELS = 1
+
 .segment "ZEROPAGE"
 ; DSP Buffer ------------------------ ;
 buf_CLVOL:          .res NUM_CHANNELS
@@ -36,8 +38,8 @@ instptr:            .res 2
     MOV A, CPU0                 ; Mimic on Port 1
     MOV CPU1, A
 
-    MOV buf_T0DIV, $0500        ; Set 30ms timer
-    MOV T0DIV, buf_T0DIV
+    MOV A, !$0500        ; Set 30ms timer
+    MOV T0DIV, A
 
     MOV CONTROL, #%00110001     ; Reset I/O Ports, Set T0
     MOV buf_CONTROL, #%00110001
@@ -50,8 +52,8 @@ directory:
 ;--------------------------------------
 .segment "HEADER" ; 16B Song Header
 song0:    
-    .byte 240   ; Timer 0 Divider (15ms = 120, 30ms = 240)
-    .byte 1     ; Number of channels
+    .byte 240           ; Timer 0 Divider (15ms = 120, 30ms = 240)
+    .byte NUM_CHANNELS  ; Number of channels
     .word pattern_table
     .word inst_table
     .byte 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
@@ -63,7 +65,7 @@ inst_table:
     .word inst0
 ;--------------------------------------
 pat0:
-    .byte 0, 0, #$7F, 0 ; (note=0), (inst=0), (vol=max), (length=indefinite)
+    .byte 0, 0, $7F, 0 ; (note=0), (inst=0), (vol=max), (length=indefinite)
 ;--------------------------------------
 inst0:  
     .byte 0, $CF, $88 ; (sample=0), (ADSR=CF88)
