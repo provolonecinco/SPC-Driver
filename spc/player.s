@@ -34,7 +34,7 @@ tick:               .res 1
     dmov (SRCN|CH0), #0         ; sample 0
 
     dmov (ADSR1|CH0), #%10011111
-	dmov (ADSR2|CH0), #%11110001
+	dmov (ADSR2|CH0), #%11110111
 
     dmov (PITCHL|CH1), #$AE
     dmov (PITCHH|CH1), #$0A
@@ -44,7 +44,7 @@ tick:               .res 1
     dmov (SRCN|CH1), #0         ; sample 0
 
     dmov (ADSR1|CH1), #%10011111
-	dmov (ADSR2|CH1), #%11110001
+	dmov (ADSR2|CH1), #%11110111
 
     dmov (PITCHL|CH2), #$B3
     dmov (PITCHH|CH2), #$0C
@@ -54,7 +54,7 @@ tick:               .res 1
     dmov (SRCN|CH2), #0         ; sample 0
 
     dmov (ADSR1|CH2), #%10011111
-	dmov (ADSR2|CH2), #%11110001
+	dmov (ADSR2|CH2), #%11110111
 
     dmov KON, #7 << 0
     RET
@@ -113,11 +113,11 @@ inst0:
     .byte 0, $CF, $88 ; (sample=0), (ADSR=CF88)
 ;--------------------------------------
 pitch_8:  ; pitchgen.py
-    .word $0400, $043D, $047D, $04C2, $050A, $0557, $05A8, $05FE, $0659, $06BA, $0721, $078D
-pitch_16: 
-    .word $0800, $087A, $08FB, $0983, $0A14, $0AAE, $0B50, $0BFD, $0CB3, $0D74, $0E41, $0F1A
+    .word $43D,  $47E,  $4C2,  $50A,  $557,  $5A8,  $5FE,  $65A,  $6BA,  $721,  $78D,  $800
+pitch_16: ;tuned to B+21c
+    .word $87A,  $8FB,  $984,  $A15,  $AAE,  $B51,  $BFD,  $CB3,  $D75,  $E41,  $F1A,  $1000
 pitch_32: 
-    .word $1000, $10F4, $11F6, $1307, $1429, $155C, $16A1, $17F9, $1966, $1AE9, $1C82, $1E34
+    .word $10F4,  $11F6,  $1307,  $1429,  $155C,  $16A1,  $17FA,  $1967,  $1AE9,  $1C83,  $1E35,  $2000
 ;--------------------------------------
 sample0:
     .incbin "samples/guitar16.brr" ; test samples

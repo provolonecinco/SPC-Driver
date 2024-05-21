@@ -12,6 +12,8 @@
 ;     • X = Octave, Y = Note index
 ;$00: Pattern End
 ;
+;$00: Software Release
+;
 ; Furnace Effects to Support/Map ---------------
 ;
 ;$03.XX: Portamento 
