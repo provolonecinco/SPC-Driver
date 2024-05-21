@@ -5,12 +5,11 @@
 .include "inc/driver.inc"
 ;--------------------------------------
 .segment "ZEROPAGE"  
-; General Purpose ------------------- ;  
+; General Purpose ---------------------;  
 tmp0:               .res 1
 tmp1:               .res 1
 tmp2:               .res 1
 tmp3:               .res 1
-buf_T0DIV:          .res 1
 buf_CONTROL:        .res 1
 buf_CPU0:           .res 1
 buf_CPU1:           .res 1
@@ -23,20 +22,9 @@ spc_entrypoint:
     JMP !driver_init
 main:
     MOV A, CPU0                 ; check for communication
-    BMI :+
-
-    BBC buf_CONTROL.0, main     ; don't check timer unless enabled
-    MOV A, T0OUT                
-    BEQ main
-
-    CLR1 buf_CPU3.(SPC_BUSY)    ; Signal SPC is not available for communication
-    MOV A, buf_CPU3
-    MOV CPU3, A
-
-    CALL !driver_update
+    BPL main            
+    JMP !communicate_snes       
     JMP !main
-:
-    JMP !communicate_snes        ; normal BMI out of range
 ;--------------------------------------
 .proc driver_init    
     CLRP                ; Zeropage @ $00XX
@@ -64,21 +52,8 @@ clrdsp:
     dmov FLG,   #$20    ; mute off, echo write off, LFSR noise stop
     dmov DIR,   #$04    ; Sample Directory = $03XX
 
-    MOV A, buf_CONTROL  ; Disable IPL ROM and timers
-    MOV CONTROL, A
-
-    CALL !play_sample
+    MOV CONTROL, #$00  ; Disable IPL ROM and timers
 
     JMP !main
-.endproc
-;--------------------------------------
-.proc driver_update ; unload shadow buffers
-    INC tmp0
-
-    SET1 buf_CPU3.(SPC_BUSY)    ; Signal SPC available for communication
-    MOV A, buf_CPU3
-    MOV CPU3, A
-
-    RET
 .endproc
 ;--------------------------------------

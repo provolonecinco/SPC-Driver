@@ -45,10 +45,6 @@ load_sprite:
     STA OAMbuf + 2
     STZ OAMbuf + 3
     STZ OAMbuf_hi 
-
-    ;LDX #0
-    ;JSR load_song
-    JSR play_song
     
     LDA #%00001111                          ; screen brightness = $F (on)
     STA INIDISP

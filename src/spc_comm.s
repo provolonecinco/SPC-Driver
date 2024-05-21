@@ -1,15 +1,16 @@
 .include "inc/zp.inc"
 .include "inc/main.inc"
 .include "inc/spc_comm.inc"
-
+;--------------------------------------
 DRIVER_SIZE =   (spc_driver_end - spc_driver)
-
+;--------------------------------------
 .segment "ZEROPAGE"
 SPC_transfer_pointer:   .res 3
 SPC_transfer_size:      .res 2
 SPC_target_addr:        .res 2
-
+;--------------------------------------
 .segment "BANK0"
+;--------------------------------------
 .proc spc_boot
     seta8
     setxy16
@@ -59,7 +60,7 @@ transfer_driver:
     setxy8
     RTS 
 .endproc
-
+;--------------------------------------
 .proc load_song ; X = song index
     setaxy8
 
@@ -69,18 +70,7 @@ transfer_driver:
     ;JSR spc_bulktransfer    ; samples
     RTS
 .endproc
-
-.proc play_song ; SPC will start Timer 0
-    setaxy8
-    LDA #SPC_START
-    STA APU0
-:
-    LDA APU1
-    CMP #SPC_START
-    BNE :-
-    RTS
-.endproc 
-
+;--------------------------------------
 .proc spc_bulktransfer 
     setaxy8
     STZ PPUNMI              ; disable NMI/IRQ
@@ -121,14 +111,39 @@ transfer:
 
     STZ APU0                ; reset ports
     STZ APU1
-    STZ APU2 
+    STZ APU2
     STZ APU3
 
     LDA #$80                ; reenable NMI
     STA PPUNMI
     RTS
 .endproc
+;--------------------------------------
+.proc play_song ; SPC will start Timer 0
+    setaxy8
+    LDA #SPC_PLAY
+    STA APU0
+:
+    LDA APU1
+    CMP #SPC_PLAY
+    BNE :-
+    RTS
+.endproc 
+;--------------------------------------
+.proc spc_tick
+    setaxy8
+    LDA #SPC_TICK
+    STA APU0
+:
+    LDA APU1
+    CMP #SPC_TICK
+    BNE :-
 
+    STZ APU0        ; reset ports
+    STZ APU1
+    RTS
+.endproc
+;--------------------------------------
 .segment "BANK1"
 spc_driver:
     .incbin "output/spcdriver.bin"

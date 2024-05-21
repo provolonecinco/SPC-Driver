@@ -8,14 +8,9 @@ transfer_addr:      .res 2
 ;--------------------------------------
 .segment "DRIVER"
 jump_table:
-    .word bulk_transfer, play_song
+    .word bulk_transfer, play_song, driver_update
 ;--------------------------------------
 .proc communicate_snes
-    MOV A, #0                   ; Disable timers
-    MOV CONTROL, A
-    MOV buf_CONTROL, A
-    
-check_opcode:
     MOV A, CPU0                 ; mask upper 4bits to determine index into jump table
     AND A, #$0F                 
     ASL A
@@ -49,8 +44,10 @@ recieve:
     BRA recieve
 done:
     MOV CPU3, #END_COMM
-    MOV CONTROL, #%00110000     ; Reset I/O Ports
-    MOV buf_CONTROL, #%00110000
+    MOV CPU0, #0
+    MOV CPU1, #0
+    MOV CPU2, #0
+    MOV CPU3, #0
     JMP !main
 .endproc
 ;--------------------------------------

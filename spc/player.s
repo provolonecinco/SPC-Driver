@@ -1,28 +1,39 @@
 .include "inc/spc.inc"
 .include "inc/driver.inc"
 
-NUM_CHANNELS = 1
-
 .segment "ZEROPAGE"
 ; DSP Buffer ------------------------ ;
-buf_CLVOL:          .res NUM_CHANNELS
-buf_CRVOL:          .res NUM_CHANNELS
-buf_CFREQLO:        .res NUM_CHANNELS
-buf_CFREQHI:        .res NUM_CHANNELS
-buf_LVOL:           .res NUM_CHANNELS
-buf_RVOL:           .res NUM_CHANNELS
-buf_LECHOVOL:       .res NUM_CHANNELS
-buf_RECHOVOL:       .res NUM_CHANNELS
-buf_KON:            .res NUM_CHANNELS
-buf_KOFF:           .res NUM_CHANNELS
+buf_CLVOL:          .res 8
+buf_CRVOL:          .res 8
+buf_CFREQLO:        .res 8
+buf_CFREQHI:        .res 8
+buf_LVOL:           .res 1
+buf_RVOL:           .res 1
+buf_LECHOVOL:       .res 1
+buf_RECHOVOL:       .res 1
+buf_KON:            .res 1
+buf_KOFF:           .res 1
 ; Driver-Specific --------------------;
 patternptr:         .res 2
 instptr:            .res 2
+tick:               .res 1
+;--------------------------------------
 .segment "DRIVER"
 ;-------------------------------------
 .proc play_sample
-    dmov (PITCHL|CH0), #$00     ; set CH0 pitch to whatever the regular samplerate is
-    dmov (PITCHH|CH0), #$08
+    CMP tmp3, #24
+    BNE :+
+    MOV tmp3, #0
+:
+    MOV X, tmp3
+    MOV A, !pitch_16 + X
+    dmov (PITCHL|CH0), A     ; set CH0 pitch to whatever the regular samplerate is
+    INC X
+    MOV A, !pitch_16 + X
+    dmov (PITCHH|CH0), A
+    INC X 
+    MOV tmp3, X
+
     dmov (VOLL|CH0), #$7F       ; CH0 output = max
     dmov (VOLR|CH0), #$7F
     dmov (SRCN|CH0), #0         ; sample 0
@@ -38,13 +49,29 @@ instptr:            .res 2
     MOV A, CPU0                 ; Mimic on Port 1
     MOV CPU1, A
 
-    MOV A, !$0500        ; Set 30ms timer
-    MOV T0DIV, A
-
-    MOV CONTROL, #%00110001     ; Reset I/O Ports, Set T0
-    MOV buf_CONTROL, #%00110001
+    MOV CPU0, #0
+    MOV CPU1, #0
     JMP !main
 .endproc 
+;--------------------------------------
+.proc driver_update ; unload shadow buffers
+    MOV A, CPU0                 ; Mimic on Port 1
+    MOV CPU1, A
+    
+    INC tick
+    BNE :+
+    CALL !play_sample
+    MOV tick, #$E0
+:
+
+    INC tmp0
+    .repeat 12
+        NOP
+    .endrepeat
+    MOV CPU0, #0
+    MOV CPU1, #0
+    JMP !main
+.endproc
 ;--------------------------------------
 .segment "DIR" ; $0400
 directory:
@@ -52,8 +79,8 @@ directory:
 ;--------------------------------------
 .segment "HEADER" ; 16B Song Header
 song0:    
-    .byte 240           ; Timer 0 Divider (15ms = 120, 30ms = 240)
-    .byte NUM_CHANNELS  ; Number of channels
+    .byte 4             ; Speed (Ticks/Row)
+    .byte 1             ; Number of channels
     .word pattern_table
     .word inst_table
     .byte 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
@@ -73,7 +100,7 @@ inst0:
 pitch_8:  ; pitchgen.py
     .word $0400, $043D, $047D, $04C2, $050A, $0557, $05A8, $05FE, $0659, $06BA, $0721, $078D
 pitch_16: 
-    .word $0800, $807A, $08FB, $0983, $0A14, $0AAE, $0B50, $0BFD, $0CB3, $0D74, $0E41, $0F1A
+    .word $0800, $087A, $08FB, $0983, $0A14, $0AAE, $0B50, $0BFD, $0CB3, $0D74, $0E41, $0F1A
 pitch_32: 
     .word $1000, $10F4, $11F6, $1307, $1429, $155C, $16A1, $17F9, $1966, $1AE9, $1C82, $1E34
 ;--------------------------------------

@@ -12,6 +12,7 @@
     bit a:NMISTATUS
     JSR OAMDMA
     JSR CGRAMDMA
+    JSR spc_tick
     INC framecounter
 	PLY       
     PLX
