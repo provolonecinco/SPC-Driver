@@ -25,23 +25,38 @@ tick:               .res 1
     BNE :+
     MOV tmp3, #0
 :
-    MOV X, tmp3
-    MOV A, !pitch_16 + X
-    dmov (PITCHL|CH0), A     ; set CH0 pitch to whatever the regular samplerate is
-    INC X
-    MOV A, !pitch_16 + X
-    dmov (PITCHH|CH0), A
-    INC X 
-    MOV tmp3, X
+
+    dmov (PITCHL|CH0), #$7A
+    dmov (PITCHH|CH0), #$08
 
     dmov (VOLL|CH0), #$7F       ; CH0 output = max
     dmov (VOLR|CH0), #$7F
     dmov (SRCN|CH0), #0         ; sample 0
 
-    dmov (ADSR1|CH0), #$CF
-	dmov (ADSR2|CH0), #$88
+    dmov (ADSR1|CH0), #%10011111
+	dmov (ADSR2|CH0), #%11110001
 
-    dmov KON, #1 << 0
+    dmov (PITCHL|CH1), #$AE
+    dmov (PITCHH|CH1), #$0A
+
+    dmov (VOLL|CH1), #$7F       ; CH0 output = max
+    dmov (VOLR|CH1), #$7F
+    dmov (SRCN|CH1), #0         ; sample 0
+
+    dmov (ADSR1|CH1), #%10011111
+	dmov (ADSR2|CH1), #%11110001
+
+    dmov (PITCHL|CH2), #$B3
+    dmov (PITCHH|CH2), #$0C
+
+    dmov (VOLL|CH2), #$7F       ; CH0 output = max
+    dmov (VOLR|CH2), #$7F
+    dmov (SRCN|CH2), #0         ; sample 0
+
+    dmov (ADSR1|CH2), #%10011111
+	dmov (ADSR2|CH2), #%11110001
+
+    dmov KON, #7 << 0
     RET
 .endproc 
 ;--------------------------------------
@@ -61,7 +76,7 @@ tick:               .res 1
     INC tick
     BNE :+
     CALL !play_sample
-    MOV tick, #$E0
+    MOV tick, #$C0
 :
 
     INC tmp0
@@ -75,7 +90,7 @@ tick:               .res 1
 ;--------------------------------------
 .segment "DIR" ; $0400
 directory:
-    .word sample0, sample0      ; BRR Start, BRR Loop addr
+    .word sample0, sample0 + 144      ; BRR Start, BRR Loop addr
 ;--------------------------------------
 .segment "HEADER" ; 16B Song Header
 song0:    
