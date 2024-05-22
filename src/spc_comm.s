@@ -119,7 +119,7 @@ transfer:
     RTS
 .endproc
 ;--------------------------------------
-.proc play_song ; SPC will start Timer 0
+.proc play_song ; SPC will init song
     setaxy8
     LDA #SPC_PLAY
     STA APU0
@@ -127,6 +127,9 @@ transfer:
     LDA APU1
     CMP #SPC_PLAY
     BNE :-
+
+    STZ APU0                ; reset ports
+    STZ APU1
     RTS
 .endproc 
 ;--------------------------------------

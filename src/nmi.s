@@ -2,8 +2,9 @@
 .include "inc/main.inc"
 .include "inc/gfx.inc"
 .include "inc/spc_comm.inc"
-
+;--------------------------------------
 .segment "BANK0"
+;--------------------------------------
 .proc NMI 
     PHA         
     PHX         
@@ -19,15 +20,16 @@
     PLA         
     RTI
 .endproc
-
+;--------------------------------------
 .proc IRQ
     RTI
 .endproc
-
+;--------------------------------------
 .proc COP_
     RTI
 .endproc
-
+;--------------------------------------
 .proc BRK_
     RTI
 .endproc
+;--------------------------------------

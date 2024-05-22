@@ -8,7 +8,7 @@ transfer_addr:      .res 2
 ;--------------------------------------
 .segment "DRIVER"
 jump_table:
-    .word bulk_transfer, play_song, driver_update
+    .word bulk_transfer, song_init, driver_update
 ;--------------------------------------
 .proc communicate_snes
     MOV A, CPU0                 ; mask upper 4bits to determine index into jump table

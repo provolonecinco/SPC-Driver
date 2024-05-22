@@ -14,79 +14,70 @@ buf_RECHOVOL:       .res 1
 buf_KON:            .res 1
 buf_KOFF:           .res 1
 ; Driver-Specific --------------------;
+frame:              .res 1 ; index into pattern table
+patternindex:       .res 8 ; per-channel index into pattern
 patternptr:         .res 2
 instptr:            .res 2
 tick:               .res 1
+counter:            .res 1 ; Engine speed, ticks down (0=update)
 ;--------------------------------------
 .segment "DRIVER"
-;-------------------------------------
-.proc play_sample
-    CMP tmp3, #24
-    BNE :+
-    MOV tmp3, #0
-:
-
-    dmov (PITCHL|CH0), #$7A
-    dmov (PITCHH|CH0), #$08
-
-    dmov (VOLL|CH0), #$7F       ; CH0 output = max
-    dmov (VOLR|CH0), #$7F
-    dmov (SRCN|CH0), #0         ; sample 0
-
-    dmov (ADSR1|CH0), #%10011111
-	dmov (ADSR2|CH0), #%11110111
-
-    dmov (PITCHL|CH1), #$AE
-    dmov (PITCHH|CH1), #$0A
-
-    dmov (VOLL|CH1), #$7F       ; CH0 output = max
-    dmov (VOLR|CH1), #$7F
-    dmov (SRCN|CH1), #0         ; sample 0
-
-    dmov (ADSR1|CH1), #%10011111
-	dmov (ADSR2|CH1), #%11110111
-
-    dmov (PITCHL|CH2), #$B3
-    dmov (PITCHH|CH2), #$0C
-
-    dmov (VOLL|CH2), #$7F       ; CH0 output = max
-    dmov (VOLR|CH2), #$7F
-    dmov (SRCN|CH2), #0         ; sample 0
-
-    dmov (ADSR1|CH2), #%10011111
-	dmov (ADSR2|CH2), #%11110111
-
-    dmov KON, #7 << 0
-    RET
-.endproc 
-;--------------------------------------
-.proc play_song
-    MOV A, CPU0                 ; Mimic on Port 1
-    MOV CPU1, A
-
-    MOV CPU0, #0
-    MOV CPU1, #0
-    JMP !main
-.endproc 
+opcode_table: ; opcode jump table
+    .word $0000
 ;--------------------------------------
 .proc driver_update ; unload shadow buffers
-    MOV A, CPU0                 ; Mimic on Port 1
+    MOV A, CPU0     ; Mimic on Port 1
     MOV CPU1, A
-    
-    INC tick
-    BNE :+
-    CALL !play_sample
-    MOV tick, #$C0
-:
 
-    INC tmp0
-    .repeat 12
-        NOP
-    .endrepeat
-    MOV CPU0, #0
+    DEC counter
+    BNE :+
+    JMP !process_row
+    JMP !done
+:
+    JMP !process_active_effects
+done:
+    MOV CPU0, #0    ; Reset I/O Ports
     MOV CPU1, #0
     JMP !main
 .endproc
+;--------------------------------------
+.proc process_row
+    INC tick
+
+    MOV A, !$0500 + 0 ; Reset speed counter
+    MOV counter, A
+
+    JMP !driver_update::done
+.endproc
+;--------------------------------------
+.proc process_active_effects
+    JMP !driver_update::done
+.endproc
+;--------------------------------------
+.proc song_init
+    MOV A, CPU0     ; Mimic on Port 1
+    MOV CPU1, A
+
+    MOV A, !$0500 + 0
+    MOV counter, A
+
+    MOV A, !$0500 + 2
+    MOV patternptr, A
+
+    MOV A, !$0500 + 3
+    MOV patternptr + 1, A
+    
+    MOV A, !$0500 + 4
+    MOV instptr, A
+    
+    MOV A, !$0500 + 5
+    MOV instptr + 1, A
+   
+
+    MOV CPU0, #0    ; Reset I/O Ports
+    MOV CPU1, #0
+    JMP !main
+.endproc 
 ;--------------------------------------
 .segment "DIR" ; $0400
 directory:
@@ -94,7 +85,7 @@ directory:
 ;--------------------------------------
 .segment "HEADER" ; 16B Song Header
 song0:    
-    .byte 4             ; Speed (Ticks/Row)
+    .byte 8             ; Speed (Ticks/Row)
     .byte 1             ; Number of channels
     .word pattern_table
     .word inst_table
@@ -110,7 +101,8 @@ pat0:
     .byte 0, 0, $7F, 0 ; (note=0), (inst=0), (vol=max), (length=indefinite)
 ;--------------------------------------
 inst0:  
-    .byte 0, $CF, $88 ; (sample=0), (ADSR=CF88)
+    .byte 0         ; sample #
+    .byte $9F, $F7  ; ADSR
 ;--------------------------------------
 pitch_8:  ; pitchgen.py
     .word $43D,  $47E,  $4C2,  $50A,  $557,  $5A8,  $5FE,  $65A,  $6BA,  $721,  $78D,  $800
