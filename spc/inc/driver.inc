@@ -1,9 +1,5 @@
 ;player.s
-.global play_sample, song_init, driver_update, process_channels
+.global play_sample, song_init, driver_update, process_channels, freq_table
 
-.globalzp buf_CLVOL, buf_CRVOL, buf_CFREQLO, buf_CFREQHI, buf_LVOL, buf_RVOL, buf_LECHOVOL, buf_RECHOVOL, buf_KON, buf_KOFF
-.globalzp frame, patindex, patternptr, instptr, tick, counter, chanwait
-
-;opcodes.s
-.global opSilence, opKON, opKOFF, opINST, opNOTE, opPORTAMENTO, opVIBRATO, opTREMOLO, opPAN, opVSLIDE, opJUMP 
-.global opNOISE, opECHO, opPMOD, opNOISEFREQ, opLVOL, opRVOL, opTICK, opNSLIDEUP, opNSLIDEDOWN, opDETUNE, opSTOP
+.globalzp sSRCN, sADSR1, sADSR2, sGAIN, sPITCHL, sPITCHH, sVOLL, sVOLR, sKON, sKOFF
+.globalzp frame, patindex, patternbase, patternptr, instptr, tick, counter, chwait

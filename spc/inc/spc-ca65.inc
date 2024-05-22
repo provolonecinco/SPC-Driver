@@ -417,7 +417,7 @@ SPC_CA65_INC = 1
 .endmacro
 
 .macro _op_w op, reg, val
-	_op_one_reg op, ya, "only supports ya", reg
+	_op_one_reg op, YA, "only supports YA", reg
 	.byte val
 .endmacro
 
@@ -555,3 +555,4 @@ SPC_CA65_INC = 1
 .define CMPW cmpw 
 .define ADDW addw 
 .define SUBW subw 
+.define MOVW movw

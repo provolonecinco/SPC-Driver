@@ -1,34 +1,29 @@
+.setcpu "none"
 .include "inc/spc.inc"
 .include "inc/driver.inc"
-
+.include "inc/opcode.inc"
 .segment "ZEROPAGE"
 ; DSP Buffer ------------------------ ;
-buf_CLVOL:          .res 8
-buf_CRVOL:          .res 8
-buf_CFREQLO:        .res 8
-buf_CFREQHI:        .res 8
-buf_LVOL:           .res 1
-buf_RVOL:           .res 1
-buf_LECHOVOL:       .res 1
-buf_RECHOVOL:       .res 1
-buf_KON:            .res 1
-buf_KOFF:           .res 1
+sSRCN:           .res 8
+sADSR1:          .res 8
+sADSR2:          .res 8
+sGAIN:           .res 8
+sPITCHL:        .res 8
+sPITCHH:        .res 8
+sLVOL:          .res 8
+sRVOL:          .res 8
+sKON:           .res 1
+sKOFF:          .res 1
 ; Driver-Specific --------------------;
-frame:              .res 1 ; index into pattern table
-patindex:           .res 8 ; per-channel index into pattern
-patternptr:         .res 2
-instptr:            .res 2
-tick:               .res 1
-counter:            .res 1 ; Engine speed, ticks down (0=update)
-chanwait:           .res 8
+frame:          .res 1 ; index into pattern table
+patternbase:    .res 2
+patternptr:     .res 2 ; pathead + frame + channel
+instptr:        .res 2
+tick:           .res 1
+counter:        .res 1 ; Engine speed, ticks down (0=update)
+chwait:         .res 8
 ;--------------------------------------
 .segment "DRIVER"
-op_tablelo: ; opcode jump table
-    .byte 0, <opSilence, <opKON, <opKOFF, <opINST, <opNOTE, <opPORTAMENTO, <opVIBRATO, <opTREMOLO, <opPAN, <opVSLIDE, <opJUMP
-    .byte <opNOISE, <opECHO, <opPMOD, <opNOISEFREQ, <opLVOL, <opRVOL, <opTICK, <opNSLIDEUP, <opNSLIDEDOWN, <opDETUNE, <opSTOP
-op_tablehi:
-    .byte 0, >opSilence, >opKON, >opKOFF, >opINST, >opNOTE, >opPORTAMENTO, >opVIBRATO, >opTREMOLO, >opPAN, >opVSLIDE, >opJUMP
-    .byte >opNOISE, >opECHO, >opPMOD, >opNOISEFREQ, >opLVOL, >opRVOL, >opTICK, >opNSLIDEUP, >opNSLIDEDOWN, >opDETUNE, >opSTOP
 ;--------------------------------------
 .proc driver_update ; unload shadow buffers
     MOV A, CPU0     ; Mimic on Port 1
@@ -36,8 +31,8 @@ op_tablehi:
 
     DEC counter
     BNE :+
-    BRA !process_channels
-    BRA !done
+    JMP !process_channels
+    JMP !done
 :
     JMP !process_active_effects
 done:
@@ -49,33 +44,45 @@ done:
 ;--------------------------------------
 .proc process_channels
     INC tick
+    MOV X, #0
     MOV Y, #0
-read_row:                   ; (Y=channel number)
-    CMP #0, chanwait + Y
+    MOV A, frame 
+    CLRC 
+    ADDW YA, patternbase
+    MOVW patternptr, YA
+read_row:                   ; (X=channel number)
+    MOV A, chwait + X
     BEQ read_opcode
-    DEC chanwait + Y
+    DEC chwait + X
     BRA !next
 read_opcode:
-    MOV X, patindex + Y        
-    MOV A, [patternptr + X] ; Get opcode
+    MOV Y, #0     
+    MOV A, [patternptr] + Y ; Get opcode
 
-    MOV X, A
-    MOV A, !op_tablelo + X
+    MOV Y, A
+    MOV A, !op_tablelo + Y
     MOV tmp0, A
-    MOV A, !op_tablehi + X
+    MOV A, !op_tablehi + Y
     MOV tmp1, A
 
-    INC patindex + Y
-    MOV X, patindex + Y
-    JMP [!tmp0]             ; process opcode
+    INCW patternptr
+    PUSH X
+    MOV X, #0
+    JMP [!tmp0 + X]             ; process opcode
 next:
-    INC Y
-    CMP Y, !0501            ; number of channels
-    BNE read_opcode
-done:
-    MOV A, !$0500 + 0 ; Reset speed counter
-    MOV counter, A
+    INC X
+    MOV Y, #0
+    MOV A, X
+    CLRC
+    ADC A, frame 
+    ADDW YA, patternbase
+    MOVW patternptr, YA
 
+    CMP X, !0501            ; number of channels
+    BNE read_row
+done:
+    MOV A, !$0500           ; Reset speed counter
+    MOV counter, A
     JMP !driver_update::done
 .endproc
 ;--------------------------------------
@@ -94,10 +101,10 @@ done:
     MOV counter, #1 ; Process row immediately
 
     MOV A, #<pat0
-    MOV patternptr, A
+    MOV patternbase, A
 
     MOV A, #>pat0
-    MOV patternptr + 1, A
+    MOV patternbase + 1, A
     
     MOV A, !$0500 + 4
     MOV instptr, A
@@ -130,22 +137,22 @@ inst_table:
     .word inst0
 ;--------------------------------------
 pat0:
-    .byte $02, $30 ; KON, C3
+    .byte $02, $02 ; KON, C3
     .byte $04, $00 ; INST, 0 
-    .byte $10, $7F ; LVOL, max
-    .byte $11, $7F ; RVOL, max
-    .byte $01, $08 ; Silence, 8 rows
-    .byte $02, $20 ; KON, C2
-    .byte $01, $08 ; Silence, 4 rows
+    .byte $10, $7F, $7F ; VOL, L+R = max
+    .byte $01, $07 ; Silence, 8 rows
+    .byte $02, $12 ; KON, something
+    .byte $01, $07 ; Silence, 8
     .byte $0B, $00 ; JUMP, Frame 0 (loop)
 ;--------------------------------------
 inst0:  
     .byte 0         ; sample #
     .byte $9F, $F7  ; ADSR
+    .byte 0         ; GAIN
 ;--------------------------------------
 pitch_8:  ; pitchgen.py
     .word $43D,  $47E,  $4C2,  $50A,  $557,  $5A8,  $5FE,  $65A,  $6BA,  $721,  $78D,  $800
-pitch_16: ;tuned to B+21c
+freq_table: ;tuned to B+21c
     .word $87A,  $8FB,  $984,  $A15,  $AAE,  $B51,  $BFD,  $CB3,  $D75,  $E41,  $F1A,  $1000
 pitch_32: 
     .word $10F4,  $11F6,  $1307,  $1429,  $155C,  $16A1,  $17FA,  $1967,  $1AE9,  $1C83,  $1E35,  $2000
