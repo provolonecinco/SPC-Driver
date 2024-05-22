@@ -40,8 +40,11 @@ $(OBJ_DIR)/%.o: $(SRCDIR)/%.s
 
 # Make SPC Binary
 $(SPC_ROM_NAME): $(SPC_OBJ_FILES)
-	@ld65 --dbgfile $(SPC_DBG_NAME) -o $@ --obj-path output/obj -C spc700.cfg spc.o comm.o player.o
+	@ld65 --dbgfile $(SPC_DBG_NAME) -o $@ --obj-path output/obj -C spc700.cfg spc.o comm.o player.o, opcode.o
 
 # Assemble SPC700 code
 $(OBJ_DIR)/%.o: $(SPCDIR)/%.s
-	@ca65 -s -g $< -o $@
+	@ca65 -s -g spc/spc.s -o $@
+	@ca65 -s -g spc/comm.s -o $@
+	@ca65 -s -g spc/player.s -o $@
+	@ca65 -s -g spc/opcode.s -o $@

@@ -15,15 +15,20 @@ buf_KON:            .res 1
 buf_KOFF:           .res 1
 ; Driver-Specific --------------------;
 frame:              .res 1 ; index into pattern table
-patternindex:       .res 8 ; per-channel index into pattern
+patindex:           .res 8 ; per-channel index into pattern
 patternptr:         .res 2
 instptr:            .res 2
 tick:               .res 1
 counter:            .res 1 ; Engine speed, ticks down (0=update)
+chanwait:           .res 8
 ;--------------------------------------
 .segment "DRIVER"
-opcode_table: ; opcode jump table
-    .word $0000
+op_tablelo: ; opcode jump table
+    .byte 0, <opSilence, <opKON, <opKOFF, <opINST, <opNOTE, <opPORTAMENTO, <opVIBRATO, <opTREMOLO, <opPAN, <opVSLIDE, <opJUMP
+    .byte <opNOISE, <opECHO, <opPMOD, <opNOISEFREQ, <opLVOL, <opRVOL, <opTICK, <opNSLIDEUP, <opNSLIDEDOWN, <opDETUNE, <opSTOP
+op_tablehi:
+    .byte 0, >opSilence, >opKON, >opKOFF, >opINST, >opNOTE, >opPORTAMENTO, >opVIBRATO, >opTREMOLO, >opPAN, >opVSLIDE, >opJUMP
+    .byte >opNOISE, >opECHO, >opPMOD, >opNOISEFREQ, >opLVOL, >opRVOL, >opTICK, >opNSLIDEUP, >opNSLIDEDOWN, >opDETUNE, >opSTOP
 ;--------------------------------------
 .proc driver_update ; unload shadow buffers
     MOV A, CPU0     ; Mimic on Port 1
@@ -31,19 +36,43 @@ opcode_table: ; opcode jump table
 
     DEC counter
     BNE :+
-    JMP !process_row
-    JMP !done
+    BRA !process_channels
+    BRA !done
 :
     JMP !process_active_effects
 done:
+    CALL !write_dsp
     MOV CPU0, #0    ; Reset I/O Ports
     MOV CPU1, #0
     JMP !main
 .endproc
 ;--------------------------------------
-.proc process_row
+.proc process_channels
     INC tick
+    MOV Y, #0
+read_row:                   ; (Y=channel number)
+    CMP #0, chanwait + Y
+    BEQ read_opcode
+    DEC chanwait + Y
+    BRA !next
+read_opcode:
+    MOV X, patindex + Y        
+    MOV A, [patternptr + X] ; Get opcode
 
+    MOV X, A
+    MOV A, !op_tablelo + X
+    MOV tmp0, A
+    MOV A, !op_tablehi + X
+    MOV tmp1, A
+
+    INC patindex + Y
+    MOV X, patindex + Y
+    JMP [!tmp0]             ; process opcode
+next:
+    INC Y
+    CMP Y, !0501            ; number of channels
+    BNE read_opcode
+done:
     MOV A, !$0500 + 0 ; Reset speed counter
     MOV counter, A
 
@@ -54,17 +83,20 @@ done:
     JMP !driver_update::done
 .endproc
 ;--------------------------------------
+.proc write_dsp
+    RET
+.endproc
+;--------------------------------------
 .proc song_init
     MOV A, CPU0     ; Mimic on Port 1
     MOV CPU1, A
 
-    MOV A, !$0500 + 0
-    MOV counter, A
+    MOV counter, #1 ; Process row immediately
 
-    MOV A, !$0500 + 2
+    MOV A, #<pat0
     MOV patternptr, A
 
-    MOV A, !$0500 + 3
+    MOV A, #>pat0
     MOV patternptr + 1, A
     
     MOV A, !$0500 + 4
@@ -98,7 +130,14 @@ inst_table:
     .word inst0
 ;--------------------------------------
 pat0:
-    .byte 0, 0, $7F, 0 ; (note=0), (inst=0), (vol=max), (length=indefinite)
+    .byte $02, $30 ; KON, C3
+    .byte $04, $00 ; INST, 0 
+    .byte $10, $7F ; LVOL, max
+    .byte $11, $7F ; RVOL, max
+    .byte $01, $08 ; Silence, 8 rows
+    .byte $02, $20 ; KON, C2
+    .byte $01, $08 ; Silence, 4 rows
+    .byte $0B, $00 ; JUMP, Frame 0 (loop)
 ;--------------------------------------
 inst0:  
     .byte 0         ; sample #
