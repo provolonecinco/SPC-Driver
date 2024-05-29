@@ -93,9 +93,11 @@ done:
 
     MOV A, #<pat0
     MOV pathead, A
+    MOV chptr, A
 
     MOV A, #>pat0
     MOV pathead + 1, A
+    MOV chptr + 1, A
     
     MOV A, !$0500 + 4
     MOV instptr, A

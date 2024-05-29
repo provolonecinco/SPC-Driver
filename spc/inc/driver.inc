@@ -1,7 +1,7 @@
 ;player.s
 .global driver_update
 .global pat0
-.globalzp frame, pathead, patptr, instptr, tick, counter, chwait
+.globalzp frame, pathead, patptr, instptr, tick, counter, chwait, chptr
 
 ;   PORT0 - Opcode/Request
 ;

@@ -5,7 +5,7 @@
 ; Driver-Specific --------------------;
 frame:          .res 1 ; index into pattern table
 pathead:        .res 2
-patptr:         .res 2 ; pathead + frame + channel
+chptr:          .res 16 ; holds pattern state per channel
 instptr:        .res 2
 tick:           .res 1
 counter:        .res 1 ; Engine speed, ticks down (0=update)
@@ -29,20 +29,58 @@ op_table: ; opcode jump table
     .word opNOISE, opECHO, opPMOD, opNOISEFREQ, opVOL, opTICK, opNSLIDEUP, opNSLIDEDOWN, opDETUNE, opSTOP
 ;--------------------------------------
 .proc driver_update ; unload shadow buffers
+patptr = tmp0
+patptrhi = tmp1
+chnum = tmp2
+
     MOV A, CPU0     ; Mimic on Port 1
     MOV CPU1, A
 
     DEC counter
     BNE dspwrite
 ; Process channels -----
-    INC tick
-    JMP !opWait
+    MOV chnum, #0
+check_channel:
+    MOV X, chnum
+    MOV A, chwait + X
+    BEQ set_pointer
+    DEC chwait + X
+    JMP !silence
+    
+set_pointer:
+    MOV A, chnum
+    ASL A
+    MOV X, A
+    MOV A, chptr + X
+    MOV tmp0, A
+    INC X
+    MOV A, chptr + X
+    MOV tmp1, A
 read_opcode:
-next:
+    MOV A, [tmp0] + Y
+    ASL A
+    MOV X, A
+    JMP [!op_table + X]
+next_channel:
+    MOV A, chnum  ; preserve pointer state
+    ASL A
+    MOV X, A
+    MOV A, tmp0
+    MOV chptr + X, A
+    INC X
+    MOV A, tmp1
+    MOV chptr + X, A
+silence:
+    MOV A, chnum
+    INC A                   ; check if done
+    CMP A, !$0501
+    BEQ done
+    INC chnum
+    JMP !check_channel
 done:
+    INC tick
     MOV A, !$0500           ; Reset speed counter
     MOV counter, A
-
 ; Write DSP Registers --
 dspwrite:
 
@@ -53,18 +91,35 @@ dspwrite:
 ;--------------------------------------
 .proc opWait ; $01, (None)
 ; XX: Rows to wait
-    INC chwait
-    INC chwait + 1 
-    INC chwait + 2
-    INC chwait + 3
-    INC chwait + 4
-    INC chwait + 5
-    INC chwait + 6
-    INC chwait + 7
-    JMP !driver_update::next
+    INCW tmp0
+    MOV A, [tmp0] + Y
+    MOV X, tmp2
+    MOV chwait + X, A
+    INCW tmp0
+    JMP !driver_update::next_channel
 .endproc 
 ;--------------------------------------
 .proc opKON ; $02, (None)
+    INCW tmp0
+    MOV X, tmp2
+    SETC 
+    MOV A, #0
+:
+    ROL A
+    DEC X
+    BPL :-
+    OR A, sKON
+    MOV sKON, A
+
+get_note:
+    MOV A, [tmp0] + Y
+    MOV X, A
+    MOV A, !freq_table + X
+    MOV sPITCHL, A
+    INC X
+    MOV A, !freq_table + X
+    MOV sPITCHH, A
+    INCW tmp0
     JMP !driver_update::read_opcode
 .endproc 
 ;--------------------------------------
@@ -75,6 +130,31 @@ dspwrite:
 ;--------------------------------------
 .proc opINST ; $04, (None)
 ; XX: Instrument Index
+; note -- this will break if instrument index is anything other than 0?    
+    INCW tmp0
+    MOV A, [tmp0] + Y       ; get pointer to inst data
+    ASL A
+    MOV Y, A
+    MOV A, [instptr] + Y
+    MOV tmp3, A
+    INC Y
+    MOV A, [instptr] + Y
+    MOV tmp4, A
+
+    MOV Y, #0
+    MOV A, [tmp3] + Y
+    MOV sSRCN, A
+    INC Y
+    MOV A, [tmp3] + Y
+    MOV sADSR1, A
+    INC Y
+    MOV A, [tmp3] + Y
+    MOV sADSR2, A
+    INC Y    
+    MOV A, [tmp3] + Y
+    MOV sGAIN, A
+    INCW tmp0
+    MOV Y, #0
     JMP !driver_update::read_opcode
 .endproc 
 ;--------------------------------------

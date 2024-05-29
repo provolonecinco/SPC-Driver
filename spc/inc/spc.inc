@@ -1,4 +1,4 @@
-.globalzp tmp0, tmp1, tmp2, tmp3, buf_T0DIV, buf_CONTROL
+.globalzp tmp0, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7
 .global main
 
 .include "spc-ca65.inc"
