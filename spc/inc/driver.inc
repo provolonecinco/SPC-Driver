@@ -1,5 +1,21 @@
 ;player.s
-.global play_sample, song_init, driver_update, process_channels, freq_table
+.global driver_update
+.global pat0
+.globalzp frame, pathead, patptr, instptr, tick, counter, chwait
 
-.globalzp sSRCN, sADSR1, sADSR2, sGAIN, sPITCHL, sPITCHH, sVOLL, sVOLR, sKON, sKOFF
-.globalzp frame, patindex, patternbase, patternptr, instptr, tick, counter, chwait
+;   PORT0 - Opcode/Request
+;
+;   SNES Opcodes
+;   $80 - Transfer Bulk Data
+;       Expect 2 bytes folllowing for pointer into SPC memory
+;       P0: Unused | P1: SNES Data in | P2: SPC Mimic Data out | P3: Transfer Flags (SNES -> Bit 7: End Transfer)
+;           
+;   $81 - Play Song
+;       SPC will read the song header at $0400 and init RAM.
+;
+;   $82 - Engine Tick
+;       SNES controls the tick rate. SPC will advance playback by 1 tick.
+;
+;   Valid transfer addresses are $0400 and up. 
+;
+;
