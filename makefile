@@ -40,7 +40,7 @@ $(OBJ_DIR)/%.o: $(SRCDIR)/%.s
 
 # Make SPC Binary
 $(SPC_ROM_NAME): $(SPC_OBJ_FILES)
-	@ld65 --dbgfile $(SPC_DBG_NAME) -o $@ --obj-path output/obj -C spc700.cfg spc.o driver.o
+	@ld65 -m output/driver.txt --dbgfile $(SPC_DBG_NAME) -o $@ --obj-path output/obj -C spc700.cfg spc.o driver.o
 
 # Assemble SPC700 code
 $(OBJ_DIR)/%.o: $(SPCDIR)/%.s

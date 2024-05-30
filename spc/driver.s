@@ -26,11 +26,9 @@ sKOFF:          .res 1
 ;--------------------------------------
 op_table: ; opcode jump table
     .word 0, opWait, opKON, opKOFF, opINST, opNOTE, opPORTAMENTO, opVIBRATO, opTREMOLO, opPAN, opVSLIDE, opJUMP
-    .word opNOISE, opECHO, opPMOD, opNOISEFREQ, opVOL, opTICK, opNSLIDEUP, opNSLIDEDOWN, opDETUNE, opSTOP
+    .word opNOISE, opECHO, opPMOD, opNOISEFREQ, opVOL;, opTICK, opNSLIDEUP, opNSLIDEDOWN, opDETUNE, opSTOP
 ;--------------------------------------
 .proc driver_update ; unload shadow buffers
-patptr = tmp0
-patptrhi = tmp1
 chnum = tmp2
 
     MOV A, CPU0     ; Mimic on Port 1
@@ -75,14 +73,29 @@ silence:
     INC A                   ; check if done
     CMP A, !$0501
     BEQ done
+
     INC chnum
     JMP !check_channel
 done:
-    INC tick
     MOV A, !$0500           ; Reset speed counter
     MOV counter, A
 ; Write DSP Registers --
-dspwrite:
+dspwrite:   
+    MOV A, sKON
+    BEQ :+
+    dmov (SRCN|CH0), sSRCN + 0
+    dmov (VOLL|CH0), sLVOL + 0
+    dmov (VOLR|CH0), sRVOL + 0
+    dmov (ADSR1|CH0), sADSR1 + 0
+    dmov (ADSR2|CH0), sADSR2 + 0
+    dmov (PITCHL|CH0), sPITCHL + 0
+    dmov (PITCHH|CH0), sPITCHH + 0
+    dmov (KON|CH0), sKON + 0
+    NOP
+    NOP
+    NOP
+    MOV sKON, #0
+:
 
     MOV CPU0, #0    ; Reset I/O Ports
     MOV CPU1, #0
@@ -191,7 +204,11 @@ get_note:
 ;--------------------------------------
 .proc opJUMP ; $0B, (F:$0B)
 ; XX: Order Number
-    JMP !driver_update::read_opcode
+    INCW tmp0
+    MOV A, [tmp0] + Y
+    MOV chptr, pathead
+    MOV chptr + 1, pathead + 1
+    JMP !driver_update::done
 .endproc
 ;-------------------------------------- 
 .proc opNOISE ; $0C, (F:$11)
@@ -212,6 +229,14 @@ get_note:
 ;--------------------------------------
 .proc opVOL ; $10, (F:$81, $82)
 ; XX: 00-7F
+    INCW tmp0
+    MOV A, [tmp0] + Y
+    MOV X, tmp2       
+    MOV sLVOL + X, A
+    INCW tmp0
+    MOV A, [tmp0] + Y       
+    MOV sRVOL + X, A
+    INCW tmp0
     JMP !driver_update::read_opcode
 .endproc 
 ;--------------------------------------
