@@ -18,4 +18,10 @@
 ;
 ;   Valid transfer addresses are $0400 and up. 
 ;
-;
+
+HEADER_BASE = $0600
+SONGSPEED   = $0600
+NUM_CHAN    = $0601
+PAT_HEAD    = $0602
+INST_HEAD   = $0604
+DIR_BASE    = $0500

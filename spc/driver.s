@@ -3,7 +3,7 @@
 .include "inc/driver.inc"
 .segment "ZEROPAGE"
 ; Driver-Specific --------------------;
-frame:          .res 1 ; index into pattern table
+frame:          .res 2 ; index into pattern table
 pathead:        .res 2
 chptr:          .res 16 ; holds pattern state per channel
 instptr:        .res 2
@@ -26,7 +26,7 @@ sKOFF:          .res 1
 ;--------------------------------------
 op_table: ; opcode jump table
     .word 0, opWait, opKON, opKOFF, opINST, opNOTE, opPORTAMENTO, opVIBRATO, opTREMOLO, opPAN, opVSLIDE, opJUMP
-    .word opNOISE, opECHO, opPMOD, opNOISEFREQ, opVOL;, opTICK, opNSLIDEUP, opNSLIDEDOWN, opDETUNE, opSTOP
+    .word opNOISE, opECHO, opPMOD, opNOISEFREQ, opVOL, opTICK, opNSLIDEUP, opNSLIDEDOWN, opDETUNE, opSTOP
 ;--------------------------------------
 .proc driver_update ; unload shadow buffers
 chnum = tmp2
@@ -44,7 +44,6 @@ check_channel:
     BEQ set_pointer
     DEC chwait + X
     JMP !silence
-    
 set_pointer:
     MOV A, chnum
     ASL A
@@ -72,13 +71,13 @@ next_channel:
 silence:
     MOV A, chnum
     INC A                   ; check if done
-    CMP A, !$0601
+    CMP A, !NUM_CHAN
     BEQ done
 
     INC chnum
     JMP !check_channel
 done:
-    MOV A, !$0600           ; Reset speed counter
+    MOV A, !SONGSPEED      ; Reset speed counter
     MOV counter, A
 ; Write DSP Registers --
 write:   
@@ -140,17 +139,18 @@ write:
     ROL A
     DEC X
     BPL :-
-    OR A, sKON
+    EOR A, sKON
     MOV sKON, A
 
 get_note:
     MOV A, [tmp0] + Y
-    MOV X, A
-    MOV A, !freq_table + X
-    MOV sPITCHL, A
-    INC X
-    MOV A, !freq_table + X
-    MOV sPITCHH, A
+    MOV Y, A
+    MOV X, tmp2
+    MOV A, !freq_table + Y
+    MOV sPITCHL + X, A
+    INC Y
+    MOV A, !freq_table + Y
+    MOV sPITCHH + X, A
     INCW tmp0
     JMP !driver_update::read_opcode
 .endproc 
@@ -173,18 +173,19 @@ get_note:
     MOV A, [instptr] + Y
     MOV tmp4, A
 
+    MOV X, tmp2
     MOV Y, #0
     MOV A, [tmp3] + Y
-    MOV sSRCN, A
+    MOV sSRCN + X, A
     INC Y
     MOV A, [tmp3] + Y
-    MOV sADSR1, A
+    MOV sADSR1 + X, A
     INC Y
     MOV A, [tmp3] + Y
-    MOV sADSR2, A
+    MOV sADSR2 + X, A
     INC Y    
     MOV A, [tmp3] + Y
-    MOV sGAIN, A
+    MOV sGAIN + X, A
     INCW tmp0
     MOV Y, #0
     JMP !driver_update::read_opcode
@@ -225,31 +226,35 @@ get_note:
 ; XX: Order/Frame Number
     INCW tmp0
     MOV A, [tmp0] + Y   
-    
-    MOV X, !0601    
+    MOV X, A
+
+    MOV A, !NUM_CHAN   
     MOV tmp3, A
+    ASL tmp3
     MOV tmp4, #0
-    MOVW YA, pathead
-    CLRC 
+    CLRC
+    MOV A, #0
 :
     DEC X
-    BEQ done
+    BMI done
     ADDW YA, tmp3
     JMP !:-
 done:
-    MOVW pathead, YA
+    CLRC
+    ADDW YA, pathead
+    MOVW frame, YA
 
-    MOV A, !$0601
+    MOV A, !NUM_CHAN
     MOV tmp3, A     ; prepare chptrs
     ASL tmp3
     MOV Y, #0
     MOV X, #0
 :
-    MOV A, [pathead] + Y
+    MOV A, [frame] + Y
     MOV chptr + X, A
     INC Y
     INC X
-    DEC tmp0
+    DEC tmp3
     BNE :-
 
     JMP !driver_update::done

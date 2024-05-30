@@ -71,5 +71,3 @@ CH7     = $70
 	mov DSPADDR, #reg
 	mov DSPDATA, data
 .endmacro
- 
-SPC_BUSY        = 7 ; used on CPU3

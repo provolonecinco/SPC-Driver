@@ -1,8 +1,8 @@
-.segment "DIR" ; $0400
+.segment "DIR" ; $0500
 directory:
     .word sample0, sample0 + 72      ; BRR Start, BRR Loop addr
 ;--------------------------------------
-.segment "HEADER" ; 16B Song Header @ $0500
+.segment "HEADER" ; 16B Song Header @ $0600
 song0:    
     .byte 4             ; Speed (Ticks/Row)
     .byte 3             ; Number of channels
@@ -13,63 +13,84 @@ song0:
 .segment "SONGDATA"
 pattern_table:
     .word pat0, pat1, pat2
+    .word pat3, pat4, pat5
 inst_table:
     .word inst0
 ;--------------------------------------
 pat0:
-    .byte $02, 50   ; KON, native
+    .byte $02, 52   ; KON, native
     .byte $04, $00  ; INST, 0 
     .byte $10, $7F, $7F ; VOL, L+R = max
     .byte $01, $04  ; Silence, 5 
 
-    .byte $02, 58   ; KON, something
+    .byte $02, 60   ; KON, something
     .byte $10, $50, $50 ; VOL, L+R = max
     .byte $01, $04  ; Silence, 5
 
-    .byte $02, 64   ; KON, something
+    .byte $02, 66   ; KON, something
     .byte $10, $20, $20 ; VOL, L+R = max
     .byte $01, $04  ; Silence, 5
     
-    .byte $02, 58   ; KON, something
+    .byte $02, 60   ; KON, something
     .byte $10, $40, $40 ; VOL, L+R = max
     .byte $01, $04  ; Silence, 5 rows
 
 pat1:
-    .byte $02, 58   ; KON, native
+    .byte $02, 60   ; KON, native
     .byte $04, $00  ; INST, 0 
     .byte $10, $7F, $7F ; VOL, L+R = max
-    .byte $01, $04  ; Silence, 16 rows
+    .byte $01, $04  ; Silence, 5 rows
 
-    .byte $02, 64   ; KON, something
+    .byte $02, 66   ; KON, something
     .byte $10, $50, $50 ; VOL, L+R = max
-    .byte $01, $04  ; Silence, 16
+    .byte $01, $04  ; Silence, 5
 
     .byte $02, 74   ; KON, something
     .byte $10, $20, $20 ; VOL, L+R = max
-    .byte $01, $04  ; Silence, 16
+    .byte $01, $04  ; Silence, 5
     
-    .byte $02, 64   ; KON, something
+    .byte $02, 66   ; KON, something
     .byte $10, $40, $40 ; VOL, L+R = max
-    .byte $01, $04  ; Silence, 16
+    .byte $01, $04  ; Silence, 5
 
 
 pat2:
-    .byte $02, 64   ; KON, native
+    .byte $02, 66   ; KON, native
     .byte $04, $00  ; INST, 0 
     .byte $10, $7F, $7F ; VOL, L+R = max
-    .byte $01, $04  ; Silence, 16 rows
+    .byte $01, $04  ; Silence, 5 rows
 
     .byte $02, 74   ; KON, something
     .byte $10, $50, $50 ; VOL, L+R = max
-    .byte $01, $04  ; Silence, 16
+    .byte $01, $04  ; Silence, 5
 
-    .byte $02, 82   ; KON, something
+    .byte $02, 80   ; KON, something
     .byte $10, $20, $20 ; VOL, L+R = max
-    .byte $01, $04  ; Silence, 16
+    .byte $01, $04  ; Silence, 5
     
     .byte $02, 74   ; KON, something
     .byte $10, $40, $40 ; VOL, L+R = max
-    .byte $01, $04  ; Silence, 16
+    .byte $01, $03  ; Silence, 4
+    .byte $0B, $01  ; Jump to Order 0
+
+pat3:
+    .byte $02, 42   ; KON, native
+    .byte $04, $00  ; INST, 0 
+    .byte $10, $40, $40 ; VOL, L+R = max
+    .byte $01, $06  ; Silence, 5
+
+pat4:
+    .byte $02, 66   ; KON, native
+    .byte $04, $00  ; INST, 0 
+    .byte $10, $40, $40 ; VOL, L+R = max
+    .byte $01, $06  ; Silence, 5
+
+pat5:
+    .byte $02, 90   ; KON, native
+    .byte $04, $00  ; INST, 0 
+    .byte $10, $40, $40 ; VOL, L+R = max
+    .byte $01, $05  ; Silence, 4
+    .byte $0B, $00  ; Jump to Order 0
 ;--------------------------------------
 inst0:  
     .byte 0         ; sample #
