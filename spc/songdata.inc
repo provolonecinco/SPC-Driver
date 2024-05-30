@@ -5,14 +5,14 @@ directory:
 .segment "HEADER" ; 16B Song Header @ $0500
 song0:    
     .byte 4             ; Speed (Ticks/Row)
-    .byte 1             ; Number of channels
+    .byte 3             ; Number of channels
     .word pattern_table
     .word inst_table
     .byte 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 ;--------------------------------------
 .segment "SONGDATA"
 pattern_table:
-    .word pat0  
+    .word pat0, pat1, pat2
 inst_table:
     .word inst0
 ;--------------------------------------
@@ -20,17 +20,56 @@ pat0:
     .byte $02, 50   ; KON, native
     .byte $04, $00  ; INST, 0 
     .byte $10, $7F, $7F ; VOL, L+R = max
-    .byte $01, $04  ; Silence, 16 rows
+    .byte $01, $04  ; Silence, 5 
+
     .byte $02, 58   ; KON, something
     .byte $10, $50, $50 ; VOL, L+R = max
-    .byte $01, $04  ; Silence, 16
+    .byte $01, $04  ; Silence, 5
+
     .byte $02, 64   ; KON, something
     .byte $10, $20, $20 ; VOL, L+R = max
-    .byte $01, $04  ; Silence, 16
+    .byte $01, $04  ; Silence, 5
+    
     .byte $02, 58   ; KON, something
     .byte $10, $40, $40 ; VOL, L+R = max
-    .byte $01, $03  ; Silence, 16
-    .byte $0B, $00  ; JUMP, Frame 0 (loop)
+    .byte $01, $04  ; Silence, 5 rows
+
+pat1:
+    .byte $02, 58   ; KON, native
+    .byte $04, $00  ; INST, 0 
+    .byte $10, $7F, $7F ; VOL, L+R = max
+    .byte $01, $04  ; Silence, 16 rows
+
+    .byte $02, 64   ; KON, something
+    .byte $10, $50, $50 ; VOL, L+R = max
+    .byte $01, $04  ; Silence, 16
+
+    .byte $02, 74   ; KON, something
+    .byte $10, $20, $20 ; VOL, L+R = max
+    .byte $01, $04  ; Silence, 16
+    
+    .byte $02, 64   ; KON, something
+    .byte $10, $40, $40 ; VOL, L+R = max
+    .byte $01, $04  ; Silence, 16
+
+
+pat2:
+    .byte $02, 64   ; KON, native
+    .byte $04, $00  ; INST, 0 
+    .byte $10, $7F, $7F ; VOL, L+R = max
+    .byte $01, $04  ; Silence, 16 rows
+
+    .byte $02, 74   ; KON, something
+    .byte $10, $50, $50 ; VOL, L+R = max
+    .byte $01, $04  ; Silence, 16
+
+    .byte $02, 82   ; KON, something
+    .byte $10, $20, $20 ; VOL, L+R = max
+    .byte $01, $04  ; Silence, 16
+    
+    .byte $02, 74   ; KON, something
+    .byte $10, $40, $40 ; VOL, L+R = max
+    .byte $01, $04  ; Silence, 16
 ;--------------------------------------
 inst0:  
     .byte 0         ; sample #

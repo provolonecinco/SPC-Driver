@@ -35,7 +35,7 @@ chnum = tmp2
     MOV CPU1, A
 
     DEC counter
-    BNE dspwrite
+    BNE write
 ; Process channels -----
     MOV chnum, #0
 check_channel:
@@ -55,6 +55,7 @@ set_pointer:
     MOV A, chptr + X
     MOV tmp1, A
 read_opcode:
+    MOV Y, #0
     MOV A, [tmp0] + Y
     ASL A
     MOV X, A
@@ -71,30 +72,19 @@ next_channel:
 silence:
     MOV A, chnum
     INC A                   ; check if done
-    CMP A, !$0501
+    CMP A, !$0601
     BEQ done
 
     INC chnum
     JMP !check_channel
 done:
-    MOV A, !$0500           ; Reset speed counter
+    MOV A, !$0600           ; Reset speed counter
     MOV counter, A
 ; Write DSP Registers --
-dspwrite:   
+write:   
     MOV A, sKON
     BEQ :+
-    dmov (SRCN|CH0), sSRCN + 0
-    dmov (VOLL|CH0), sLVOL + 0
-    dmov (VOLR|CH0), sRVOL + 0
-    dmov (ADSR1|CH0), sADSR1 + 0
-    dmov (ADSR2|CH0), sADSR2 + 0
-    dmov (PITCHL|CH0), sPITCHL + 0
-    dmov (PITCHH|CH0), sPITCHH + 0
-    dmov (KON|CH0), sKON + 0
-    NOP
-    NOP
-    NOP
-    MOV sKON, #0
+    CALL !dspwrite
 :
 
     MOV CPU0, #0    ; Reset I/O Ports
@@ -102,6 +92,35 @@ dspwrite:
     JMP !main
 .endproc
 ;--------------------------------------
+.proc dspwrite
+    dmov (SRCN|CH0), sSRCN + 0
+    dmov (VOLL|CH0), sLVOL + 0
+    dmov (VOLR|CH0), sRVOL + 0
+    dmov (ADSR1|CH0), sADSR1 + 0
+    dmov (ADSR2|CH0), sADSR2 + 0
+    dmov (PITCHL|CH0), sPITCHL + 0
+    dmov (PITCHH|CH0), sPITCHH + 0
+
+    dmov (SRCN|CH1), sSRCN + 1
+    dmov (VOLL|CH1), sLVOL + 1
+    dmov (VOLR|CH1), sRVOL + 1
+    dmov (ADSR1|CH1), sADSR1 + 1
+    dmov (ADSR2|CH1), sADSR2 + 1
+    dmov (PITCHL|CH1), sPITCHL + 1
+    dmov (PITCHH|CH1), sPITCHH + 1
+
+    dmov (SRCN|CH2), sSRCN + 2
+    dmov (VOLL|CH2), sLVOL + 2
+    dmov (VOLR|CH2), sRVOL + 2
+    dmov (ADSR1|CH2), sADSR1 + 2
+    dmov (ADSR2|CH2), sADSR2 + 2
+    dmov (PITCHL|CH2), sPITCHL + 2
+    dmov (PITCHH|CH2), sPITCHH + 2
+    dmov (KON), sKON
+    MOV sKON, #0
+    RET 
+.endproc
+;-------------------------------------- 
 .proc opWait ; $01, (None)
 ; XX: Rows to wait
     INCW tmp0
@@ -203,11 +222,36 @@ get_note:
 .endproc 
 ;--------------------------------------
 .proc opJUMP ; $0B, (F:$0B)
-; XX: Order Number
+; XX: Order/Frame Number
     INCW tmp0
-    MOV A, [tmp0] + Y
-    MOV chptr, pathead
-    MOV chptr + 1, pathead + 1
+    MOV A, [tmp0] + Y   
+    
+    MOV X, !0601    
+    MOV tmp3, A
+    MOV tmp4, #0
+    MOVW YA, pathead
+    CLRC 
+:
+    DEC X
+    BEQ done
+    ADDW YA, tmp3
+    JMP !:-
+done:
+    MOVW pathead, YA
+
+    MOV A, !$0601
+    MOV tmp3, A     ; prepare chptrs
+    ASL tmp3
+    MOV Y, #0
+    MOV X, #0
+:
+    MOV A, [pathead] + Y
+    MOV chptr + X, A
+    INC Y
+    INC X
+    DEC tmp0
+    BNE :-
+
     JMP !driver_update::done
 .endproc
 ;-------------------------------------- 

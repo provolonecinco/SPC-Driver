@@ -37,7 +37,7 @@ clrdsp:
     dmov MVOLL, #$7F    ; Master Volume (L/R) = $7F
     dmov MVOLR, #$7F
     dmov FLG,   #$20    ; mute off, echo write off, LFSR noise stop
-    dmov DIR,   #$04    ; Sample Directory = $04XX
+    dmov DIR,   #$05    ; Sample Directory = $05XX
     MOV CONTROL, #$00   ; Disable IPL ROM and timers
 .proc main
     MOV A, CPU0                 ; check for communication
@@ -91,18 +91,28 @@ done:
 
     MOV counter, #1 ; Process row immediately
 
-    MOV A, #<pat0
+    MOV A, !$0602
     MOV pathead, A
-    MOV chptr, A
-
-    MOV A, #>pat0
+    MOV A, !$0603
     MOV pathead + 1, A
-    MOV chptr + 1, A
     
-    MOV A, !$0500 + 4
+    MOV A, !$0601
+    MOV tmp0, A     ; prepare chptrs
+    ASL tmp0
+    MOV Y, #0
+    MOV X, #0
+:
+    MOV A, [pathead] + Y
+    MOV chptr + X, A
+    INC Y
+    INC X
+    DEC tmp0
+    BNE :-
+
+    MOV A, !$0600 + 4
     MOV instptr, A
     
-    MOV A, !$0500 + 5
+    MOV A, !$0600 + 5
     MOV instptr + 1, A
    
 

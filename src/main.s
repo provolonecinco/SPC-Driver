@@ -14,13 +14,12 @@
     STA OBSEL 
 
     JSR load_sprite
-    
+    JSR play_song   ; init song
+
     LDA #%00001111                          ; screen brightness = $F (on)
     STA INIDISP
     LDA #%10000000                          ; enable NMI at VBlank 
     STA NMITIMEN
-
-    JSR play_song   ; init song
     
     JMP main 
 .endproc     
