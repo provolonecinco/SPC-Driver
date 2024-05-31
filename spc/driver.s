@@ -92,29 +92,46 @@ write:
 .endproc
 ;--------------------------------------
 .proc dspwrite
-    dmov (SRCN|CH0), sSRCN + 0
-    dmov (VOLL|CH0), sLVOL + 0
-    dmov (VOLR|CH0), sRVOL + 0
-    dmov (ADSR1|CH0), sADSR1 + 0
-    dmov (ADSR2|CH0), sADSR2 + 0
-    dmov (PITCHL|CH0), sPITCHL + 0
-    dmov (PITCHH|CH0), sPITCHH + 0
+    MOV A, #0
+    MOV X, #0
+write:
+    MOV DSPADDR, A
+    MOV Y, sLVOL + X
+    MOV DSPDATA, Y
+    INC A
+    MOV DSPADDR, A
+    MOV Y, sRVOL + X
+    MOV DSPDATA, Y
+    INC A
+    MOV DSPADDR, A
+    MOV Y, sPITCHL + X
+    MOV DSPDATA, Y
+    INC A
+    MOV DSPADDR, A
+    MOV Y, sPITCHH + X
+    MOV DSPDATA, Y
+    INC A
+    MOV DSPADDR, A
+    MOV Y, sSRCN + X
+    MOV DSPDATA, Y
+    INC A
+    MOV DSPADDR, A
+    MOV Y, sADSR1 + X
+    MOV DSPDATA, Y
+    INC A
+    MOV DSPADDR, A
+    MOV Y, sADSR2 + X
+    MOV DSPDATA, Y
+    INC A
+    MOV DSPADDR, A
+    MOV Y, sGAIN + X
+    MOV DSPDATA, Y
 
-    dmov (SRCN|CH1), sSRCN + 1
-    dmov (VOLL|CH1), sLVOL + 1
-    dmov (VOLR|CH1), sRVOL + 1
-    dmov (ADSR1|CH1), sADSR1 + 1
-    dmov (ADSR2|CH1), sADSR2 + 1
-    dmov (PITCHL|CH1), sPITCHL + 1
-    dmov (PITCHH|CH1), sPITCHH + 1
-
-    dmov (SRCN|CH2), sSRCN + 2
-    dmov (VOLL|CH2), sLVOL + 2
-    dmov (VOLR|CH2), sRVOL + 2
-    dmov (ADSR1|CH2), sADSR1 + 2
-    dmov (ADSR2|CH2), sADSR2 + 2
-    dmov (PITCHL|CH2), sPITCHL + 2
-    dmov (PITCHH|CH2), sPITCHH + 2
+    ADC A, #$10    ; to next multiple of $10
+    AND A, #$F0
+    INC X
+    CMP X, #8
+    BNE write
     dmov (KON), sKON
     MOV sKON, #0
     RET 
