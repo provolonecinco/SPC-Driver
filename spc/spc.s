@@ -93,8 +93,10 @@ done:
 
     MOV A, !PAT_HEAD
     MOV pathead, A
+    MOV frame, A
     MOV A, !PAT_HEAD + 1
     MOV pathead + 1, A
+    MOV frame + 1, A
     
     MOV A, !NUM_CHAN
     MOV tmp0, A     ; prepare chptrs

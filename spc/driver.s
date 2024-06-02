@@ -25,8 +25,8 @@ sKOFF:          .res 1
 .segment "DRIVER"
 ;--------------------------------------
 op_table: ; opcode jump table
-    .word 0, opWait, opKON, opKOFF, opINST, opNOTE, opPORTAMENTO, opVIBRATO, opTREMOLO, opPAN, opVSLIDE, opJUMP
-    .word opNOISE, opECHO, opPMOD, opNOISEFREQ, opVOL, opTICK, opNSLIDEUP, opNSLIDEDOWN, opDETUNE, opSTOP
+    .word 0, opWait, opKON, opKOFF, opINST, opNOTE, opPORTAMENTO, opVIBRATO, opTREMOLO, opPAN, opVSLIDE, opJUMP, opNOISE
+    .word opECHO, opPMOD, opNOISEFREQ, opVOL, opTICK, opNSLIDEUP, opNSLIDEDOWN, opDETUNE, opSTOP, opCHANEND, opADVFRAME
 ;--------------------------------------
 .proc driver_update ; unload shadow buffers
 chnum = tmp2
@@ -260,7 +260,7 @@ done:
     CLRC
     ADDW YA, pathead
     MOVW frame, YA
-
+writeptrs:
     MOV A, !NUM_CHAN
     MOV tmp3, A     ; prepare chptrs
     ASL tmp3
@@ -278,18 +278,22 @@ done:
 .endproc
 ;-------------------------------------- 
 .proc opNOISE ; $0C, (F:$11)
+    INCW tmp0
     JMP !driver_update::read_opcode
 .endproc
 ;--------------------------------------
 .proc opECHO ; $0D, (F:$12)
+    INCW tmp0
     JMP !driver_update::read_opcode
 .endproc 
 ;--------------------------------------
 .proc opPMOD ; $0E, (F:$13)
+    INCW tmp0
     JMP !driver_update::read_opcode
 .endproc 
 ;--------------------------------------
 .proc opNOISEFREQ ; $0F, (F:$1D)
+    INCW tmp0
     JMP !driver_update::read_opcode
 .endproc 
 ;--------------------------------------
@@ -308,21 +312,28 @@ done:
 ;--------------------------------------
 .proc opTICK ; $11, (F:$CX)
 ; XX: 00-FF = Ticks/Second
+    INCW tmp0
     JMP !driver_update::read_opcode
 .endproc 
 ;--------------------------------------
 .proc opNSLIDEUP ; $12, (F:$E1)
 ; XY: X = Speed, Y = Semitones
+    INCW tmp0
+    INCW tmp0
     JMP !driver_update::read_opcode
 .endproc 
 ;--------------------------------------
 .proc opNSLIDEDOWN ; $13, (F:$E2)
 ; XY: X = Speed, Y = Semitones
+    INCW tmp0
+    INCW tmp0
     JMP !driver_update::read_opcode
 .endproc 
 ;--------------------------------------
 .proc opDETUNE ; $14, (F:$E5)
 ; XX: 00 = -1 Semitone, 80 = Normal, FF = Near +1 Semitone
+    INCW tmp0
+    INCW tmp0
     JMP !driver_update::read_opcode
 .endproc 
 ;--------------------------------------
@@ -330,5 +341,27 @@ done:
     JMP !driver_update::done
 .endproc
 ;--------------------------------------
-
+.proc opCHANEND ; $16, (None)
+    JMP !driver_update::next_channel
+.endproc 
+;--------------------------------------
+.proc opADVFRAME ; $17, (None) 
+    MOV A, !NUM_CHAN   
+    ASL A
+    MOV tmp3, A
+    MOV tmp4, #0
+    CLRC
+    MOVW YA, frame
+    ADDW YA, tmp3
+    MOVW frame, YA
+    JMP !opJUMP::writeptrs
+.endproc
+;-------------------------------------- 
+freq_table: ;tuned to B+21c, pitchgen.py
+    .word $021E,  $023F,  $0261,  $0285,  $02AC,  $02D4,  $02FF,  $032D,  $035D,  $0390,  $03C7,  $0400 ; -2 Octave
+    .word $043D,  $047E,  $04C2,  $050A,  $0557,  $05A8,  $05FE,  $065A,  $06BA,  $0721,  $078D,  $0800 ; -1 Octave
+    .word $087A,  $08FB,  $0984,  $0A15,  $0AAE,  $0B51,  $0BFD,  $0CB3,  $0D75,  $0E41,  $0F1A,  $1000 ; native 16khz
+    .word $10F4,  $11F6,  $1307,  $1429,  $155C,  $16A1,  $17FA,  $1967,  $1AE9,  $1C83,  $1E35,  $2000 ; +1 Octave
+    .word $21E8,  $23EC,  $260F,  $2852,  $2AB8,  $2D42,  $2FF3,  $32CD,  $35D3,  $3906,  $3C6A,  $4000 ; +2 Octave
+;--------------------------------------
 .include "songdata.inc"
