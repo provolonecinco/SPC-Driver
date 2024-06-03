@@ -2,7 +2,7 @@
 .include "inc/main.inc"
 .include "inc/spc_comm.inc"
 ;--------------------------------------
-DRIVER_SIZE =   (spc_driver_end - spc_driver)
+.import __SPCIMAGE_RUN__, __SPCIMAGE_LOAD__, __SPCIMAGE_SIZE__
 ;--------------------------------------
 .segment "ZEROPAGE"
 SPC_transfer_pointer:   .res 3
@@ -14,19 +14,16 @@ SPC_target_addr:        .res 2
 .proc spc_boot
     seta8
     setxy16
-:                   ; wait for SPC to boot
-    LDA APU0    
-    CMP #$AA
-    BNE :-
-:
-    LDA APU1
-    CMP #$BB
-    BNE :-
-    LDA #$FF        ; write a nonzero to initiate transfer
-    STA APU1          
-    LDA #$02        ; set transfer address to $0200
-    STA APU3
+
+    LDX APU0
+    CPX #$BBAA
+
+    LDA #1        ; write a nonzero to initiate transfer
+    STA APU1
+    INC A         ; set transfer address to $0200
     STZ APU2
+    STA APU3
+
     LDA #$CC        ; IPL bootrom expects $CC
     STA APU0
 :                   ; wait for SPC to mimic it
@@ -37,7 +34,7 @@ SPC_target_addr:        .res 2
     LDX #0
     STZ tmp0
 transfer_driver:
-    LDA f:spc_driver, X
+    LDA f:__SPCIMAGE_LOAD__, X
     STA APU1
     LDA tmp0
     STA APU0        
@@ -47,16 +44,19 @@ transfer_driver:
     INA 
     STA tmp0
     INX 
-    CPX #DRIVER_SIZE
+    CPX #__SPCIMAGE_SIZE__
     BNE transfer_driver
 ; transfer is finished, execute program
-    LDA #$02                ; write entry point address -> $0200
-    STA APU3
-    STZ APU2
-    LDA tmp0                ; completed
-    INA
-    INA 
+    STZ APU1
+    LDX #$0200
+    STX APU2
+    INC A
     STA APU0
+
+:
+    CMP APU0
+    BNE :-
+
     setxy8
     RTS 
 .endproc
@@ -147,8 +147,4 @@ transfer:
     RTS
 .endproc
 ;--------------------------------------
-.segment "BANK1"
-spc_driver:
-    .incbin "output/spcdriver.bin"
-spc_driver_end:
 

@@ -1,11 +1,11 @@
-.segment "DIR" ; $0500
+.align 256
 directory:
     .word sample0, sample0      ; BRR Start, BRR Loop addr
     .word sample1, sample1
     .word sample2, sample2 + 2133
     .word sample3, sample3 + 891
 ;--------------------------------------
-.segment "HEADER" ; 16B Song Header @ $0600
+.align 256 ; 16B Song Header @ $0700
 song0:    
     .byte 3             ; Speed (Ticks/Row)
     .byte 2             ; Number of channels
@@ -13,7 +13,6 @@ song0:
     .word inst_table
     .byte 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 ;--------------------------------------
-.segment "SONGDATA"
 pattern_table:
     .word pat0, pat1
     .word pat0, pat1
@@ -312,11 +311,11 @@ basspop0:
     .byte 0
 ;--------------------------------------
 sample0:
-    .incbin "samples/kick16.brr"
+    .incbin "spc/samples/kick16.brr"
 sample1:
-    .incbin "samples/snare32.brr"
+    .incbin "spc/samples/snare32.brr"
 sample2:
-    .incbin "samples/hato32.brr"
+    .incbin "spc/samples/hato32.brr"
 sample3:
-    .incbin "samples/bass32.brr"
+    .incbin "spc/samples/bass32.brr"
 ;--------------------------------------

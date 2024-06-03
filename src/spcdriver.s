@@ -1,7 +1,20 @@
+;--------------------------------------
 .setcpu "none"
-.include "inc/spc.inc"
-.include "inc/driver.inc"
-.segment "ZEROPAGE"
+.include "spc/inc/spc.inc"
+.include "spc/inc/driver.inc"
+;--------------------------------------
+.segment "SPCZEROPAGE"  
+.zeropage
+; General Purpose ---------------------;  
+r0:               .res 1
+r1:               .res 1
+r2:               .res 1
+r3:               .res 1
+r4:               .res 1
+r5:               .res 1
+r6:               .res 1
+r7:               .res 1
+transfer_addr:    .res 2
 ; Driver-Specific --------------------;
 frame:          .res 2 ; index into pattern table
 pathead:        .res 2
@@ -22,14 +35,120 @@ sRVOL:          .res 8
 sKON:           .res 1
 sKOFF:          .res 1
 ;--------------------------------------
-.segment "DRIVER"
+.segment "SPCIMAGE"
+;--------------------------------------
+spc_entrypoint:         ; SPC Init
+    CLRP                ; Zeropage @ $00XX
+    MOV A, #0           ; Zero out stack
+clrstack:
+    MOV !$0100 + X, A
+    INC X
+    BNE clrstack
+    MOV X, #$FF         ; Stack pointer = $01FF
+    MOV SP, X
+    MOV X, #0           ; zero out DSP regs
+    MOV Y, #0      
+clrdsp:
+    MOV DSPADDR, X  
+    MOV DSPDATA, Y 
+    INC X 
+    BPL clrdsp
+    dmov ESA,   #$FF    ; Echo addr = $FF00
+    dmov MVOLL, #$7F    ; Master Volume (L/R) = $7F
+    dmov MVOLR, #$7F
+    dmov FLG,   #$20    ; mute off, echo write off, LFSR noise stop
+    dmov DIR,   #>DIR_BASE    ; Sample Directory = $05XX
+    MOV CONTROL, #$00   ; Disable IPL ROM and timers
+.proc main
+    MOV A, CPU0                 ; check for communication
+    BPL main            
+    MOV A, CPU0                 ; mask upper 4bits to determine index into jump table
+    AND A, #$0F                 
+    ASL A
+    MOV X, A
+    JMP [!jump_table + X]   
+.endproc  
+;--------------------------------------
+jump_table:
+    .word bulk_transfer, song_init, driver_update
+;--------------------------------------
+.proc bulk_transfer
+    MOV A, CPU0                 ; Mimic on Port 1
+    MOV CPU1, A
+
+    MOV A, CPU1                 ; get pointer
+    MOV transfer_addr, A
+    MOV A, CPU2
+    MOV transfer_addr + 1, A
+
+wait_index:
+    MOV Y, CPU0                 ; Index (Should be 0)
+    BNE wait_index
+recieve:
+    MOV A, CPU3                 ; check if we're done
+    BMI done
+    CMP Y, CPU0                 ; wait until index changes
+    BNE recieve
+    MOV A, CPU1                 ;get data
+    MOV CPU0, Y                 ;send index
+    MOV [transfer_addr] + Y, A  ;store data
+    INC Y                       ;addr lsb
+    BNE recieve
+    INC transfer_addr + 1       ;addr msb
+    BRA recieve
+done:
+    MOV CPU3, #$80              ; bit 7 signals end
+    MOV CPU0, #0
+    MOV CPU1, #0
+    MOV CPU2, #0
+    MOV CPU3, #0
+    JMP !main
+.endproc
+;--------------------------------------
+.proc song_init
+    MOV A, CPU0     ; Mimic on Port 1
+    MOV CPU1, A
+
+    MOV counter, #1 ; Process row immediately
+
+    MOV A, !PAT_HEAD
+    MOV pathead, A
+    MOV frame, A
+    MOV A, !PAT_HEAD + 1
+    MOV pathead + 1, A
+    MOV frame + 1, A
+    
+    MOV A, !NUM_CHAN
+    MOV r0, A     ; prepare chptrs
+    ASL r0
+    MOV Y, #0
+    MOV X, #0
+:
+    MOV A, [pathead] + Y
+    MOV chptr + X, A
+    INC Y
+    INC X
+    DEC r0
+    BNE :-
+
+    MOV A, !INST_HEAD
+    MOV instptr, A
+    
+    MOV A, !INST_HEAD + 1
+    MOV instptr + 1, A
+   
+
+    MOV CPU0, #0    ; Reset I/O Ports
+    MOV CPU1, #0
+    JMP !main
+.endproc 
 ;--------------------------------------
 op_table: ; opcode jump table
     .word 0, opWait, opKON, opKOFF, opINST, opNOTE, opPORTAMENTO, opVIBRATO, opTREMOLO, opPAN, opVSLIDE, opJUMP, opNOISE
     .word opECHO, opPMOD, opNOISEFREQ, opVOL, opTICK, opNSLIDEUP, opNSLIDEDOWN, opDETUNE, opSTOP, opCHANEND, opADVFRAME
 ;--------------------------------------
 .proc driver_update ; unload shadow buffers
-chnum = tmp2
+chnum = r2
 
     MOV A, CPU0     ; Mimic on Port 1
     MOV CPU1, A
@@ -49,13 +168,13 @@ set_pointer:
     ASL A
     MOV X, A
     MOV A, chptr + X
-    MOV tmp0, A
+    MOV r0, A
     INC X
     MOV A, chptr + X
-    MOV tmp1, A
+    MOV r1, A
 read_opcode:
     MOV Y, #0
-    MOV A, [tmp0] + Y
+    MOV A, [r0] + Y
     ASL A
     MOV X, A
     JMP [!op_table + X]
@@ -63,10 +182,10 @@ next_channel:
     MOV A, chnum  ; preserve pointer state
     ASL A
     MOV X, A
-    MOV A, tmp0
+    MOV A, r0
     MOV chptr + X, A
     INC X
-    MOV A, tmp1
+    MOV A, r1
     MOV chptr + X, A
 silence:
     MOV A, chnum
@@ -139,17 +258,17 @@ write:
 ;-------------------------------------- 
 .proc opWait ; $01, (None)
 ; XX: Rows to wait
-    INCW tmp0
-    MOV A, [tmp0] + Y
-    MOV X, tmp2
+    INCW r0
+    MOV A, [r0] + Y
+    MOV X, r2
     MOV chwait + X, A
-    INCW tmp0
+    INCW r0
     JMP !driver_update::next_channel
 .endproc 
 ;--------------------------------------
 .proc opKON ; $02, (None)
-    INCW tmp0
-    MOV X, tmp2
+    INCW r0
+    MOV X, r2
     SETC 
     MOV A, #0
 :
@@ -160,15 +279,15 @@ write:
     MOV sKON, A
 
 get_note:
-    MOV A, [tmp0] + Y
+    MOV A, [r0] + Y
     MOV Y, A
-    MOV X, tmp2
+    MOV X, r2
     MOV A, !freq_table + Y
     MOV sPITCHL + X, A
     INC Y
     MOV A, !freq_table + Y
     MOV sPITCHH + X, A
-    INCW tmp0
+    INCW r0
     JMP !driver_update::read_opcode
 .endproc 
 ;--------------------------------------
@@ -180,30 +299,30 @@ get_note:
 .proc opINST ; $04, (None)
 ; XX: Instrument Index
 ; note -- this will break if instrument index is anything other than 0?    
-    INCW tmp0
-    MOV A, [tmp0] + Y       ; get pointer to inst data
+    INCW r0
+    MOV A, [r0] + Y       ; get pointer to inst data
     ASL A
     MOV Y, A
     MOV A, [instptr] + Y
-    MOV tmp3, A
+    MOV r3, A
     INC Y
     MOV A, [instptr] + Y
-    MOV tmp4, A
+    MOV r4, A
 
-    MOV X, tmp2
+    MOV X, r2
     MOV Y, #0
-    MOV A, [tmp3] + Y
+    MOV A, [r3] + Y
     MOV sSRCN + X, A
     INC Y
-    MOV A, [tmp3] + Y
+    MOV A, [r3] + Y
     MOV sADSR1 + X, A
     INC Y
-    MOV A, [tmp3] + Y
+    MOV A, [r3] + Y
     MOV sADSR2 + X, A
     INC Y    
-    MOV A, [tmp3] + Y
+    MOV A, [r3] + Y
     MOV sGAIN + X, A
-    INCW tmp0
+    INCW r0
     MOV Y, #0
     JMP !driver_update::read_opcode
 .endproc 
@@ -241,20 +360,20 @@ get_note:
 ;--------------------------------------
 .proc opJUMP ; $0B, (F:$0B)
 ; XX: Order/Frame Number
-    INCW tmp0
-    MOV A, [tmp0] + Y   
+    INCW r0
+    MOV A, [r0] + Y   
     MOV X, A
 
     MOV A, !NUM_CHAN   
-    MOV tmp3, A
-    ASL tmp3
-    MOV tmp4, #0
+    MOV r3, A
+    ASL r3
+    MOV r4, #0
     CLRC
     MOV A, #0
 :
     DEC X
     BMI done
-    ADDW YA, tmp3
+    ADDW YA, r3
     JMP !:-
 done:
     CLRC
@@ -262,8 +381,8 @@ done:
     MOVW frame, YA
 writeptrs:
     MOV A, !NUM_CHAN
-    MOV tmp3, A     ; prepare chptrs
-    ASL tmp3
+    MOV r3, A     ; prepare chptrs
+    ASL r3
     MOV Y, #0
     MOV X, #0
 :
@@ -271,69 +390,69 @@ writeptrs:
     MOV chptr + X, A
     INC Y
     INC X
-    DEC tmp3
+    DEC r3
     BNE :-
 
     JMP !driver_update::done
 .endproc
 ;-------------------------------------- 
 .proc opNOISE ; $0C, (F:$11)
-    INCW tmp0
+    INCW r0
     JMP !driver_update::read_opcode
 .endproc
 ;--------------------------------------
 .proc opECHO ; $0D, (F:$12)
-    INCW tmp0
+    INCW r0
     JMP !driver_update::read_opcode
 .endproc 
 ;--------------------------------------
 .proc opPMOD ; $0E, (F:$13)
-    INCW tmp0
+    INCW r0
     JMP !driver_update::read_opcode
 .endproc 
 ;--------------------------------------
 .proc opNOISEFREQ ; $0F, (F:$1D)
-    INCW tmp0
+    INCW r0
     JMP !driver_update::read_opcode
 .endproc 
 ;--------------------------------------
 .proc opVOL ; $10, (F:$81, $82)
 ; XX: 00-7F
-    INCW tmp0
-    MOV A, [tmp0] + Y
-    MOV X, tmp2       
+    INCW r0
+    MOV A, [r0] + Y
+    MOV X, r2       
     MOV sLVOL + X, A
-    INCW tmp0
-    MOV A, [tmp0] + Y       
+    INCW r0
+    MOV A, [r0] + Y       
     MOV sRVOL + X, A
-    INCW tmp0
+    INCW r0
     JMP !driver_update::read_opcode
 .endproc 
 ;--------------------------------------
 .proc opTICK ; $11, (F:$CX)
 ; XX: 00-FF = Ticks/Second
-    INCW tmp0
+    INCW r0
     JMP !driver_update::read_opcode
 .endproc 
 ;--------------------------------------
 .proc opNSLIDEUP ; $12, (F:$E1)
 ; XY: X = Speed, Y = Semitones
-    INCW tmp0
-    INCW tmp0
+    INCW r0
+    INCW r0
     JMP !driver_update::read_opcode
 .endproc 
 ;--------------------------------------
 .proc opNSLIDEDOWN ; $13, (F:$E2)
 ; XY: X = Speed, Y = Semitones
-    INCW tmp0
-    INCW tmp0
+    INCW r0
+    INCW r0
     JMP !driver_update::read_opcode
 .endproc 
 ;--------------------------------------
 .proc opDETUNE ; $14, (F:$E5)
 ; XX: 00 = -1 Semitone, 80 = Normal, FF = Near +1 Semitone
-    INCW tmp0
-    INCW tmp0
+    INCW r0
+    INCW r0
     JMP !driver_update::read_opcode
 .endproc 
 ;--------------------------------------
@@ -348,11 +467,11 @@ writeptrs:
 .proc opADVFRAME ; $17, (None) 
     MOV A, !NUM_CHAN   
     ASL A
-    MOV tmp3, A
-    MOV tmp4, #0
+    MOV r3, A
+    MOV r4, #0
     CLRC
     MOVW YA, frame
-    ADDW YA, tmp3
+    ADDW YA, r3
     MOVW frame, YA
     JMP !opJUMP::writeptrs
 .endproc
@@ -364,4 +483,4 @@ freq_table: ;tuned to B+21c, pitchgen.py
     .word $10F4,  $11F6,  $1307,  $1429,  $155C,  $16A1,  $17FA,  $1967,  $1AE9,  $1C83,  $1E35,  $2000 ; +1 Octave
     .word $21E8,  $23EC,  $260F,  $2852,  $2AB8,  $2D42,  $2FF3,  $32CD,  $35D3,  $3906,  $3C6A,  $4000 ; +2 Octave
 ;--------------------------------------
-.include "songdata.inc"
+.include "spc/songdata.inc"
