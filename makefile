@@ -25,8 +25,8 @@ run: $(ROM_NAME)
 
 # Link output files into ROM
 $(ROM_NAME): $(OBJ_FILES)
-	ld65 --dbgfile $(DBG_NAME) -o $@ -C lorom256k.cfg $^
+	@ld65 --dbgfile $(DBG_NAME) -o $@ -C lorom256k.cfg $^
 
 # Assemble 65816 code
 $(OBJ_DIR)/%.o: $(SRCDIR)/%.s
-	ca65 -s -g $< -o $@
+	@ca65 -s -g $< -o $@

@@ -1,7 +1,6 @@
 ;--------------------------------------
 .setcpu "none"
-.include "spc/inc/spc.inc"
-.include "spc/inc/driver.inc"
+.include "spc/driver.inc"
 ;--------------------------------------
 .segment "SPCZEROPAGE"  
 .zeropage
@@ -16,14 +15,15 @@ r6:               .res 1
 r7:               .res 1
 transfer_addr:    .res 2
 ; Driver-Specific --------------------;
-frame:          .res 2 ; index into pattern table
-pathead:        .res 2
-chptr:          .res 16 ; holds pattern state per channel
-instptr:        .res 2
-tick:           .res 1
-counter:        .res 1 ; Engine speed, ticks down (0=update)
-chwait:         .res 8 ; Silence/Wait opcode counter
-; DSP Buffer ------------------------ ;
+frame:          .res 2  ; base addr of current order
+pathead:        .res 2  ; address of order table
+chptr:          .res 16 ; holds current pattern location per channel
+instptr:        .res 2  ; base addr of instrument table
+tick:           .res 1  ; incremented every tick
+counter:        .res 1  ; Engine speed, ticks down (0=update)
+chwait:         .res 8  ; Silence/Wait opcode counter
+; DSP Buffer -------------------------;
+; Buffer is flushed every tick
 sSRCN:          .res 8
 sADSR1:         .res 8
 sADSR2:         .res 8
@@ -60,9 +60,9 @@ clrdsp:
     dmov DIR,   #>DIR_BASE    ; Sample Directory = $05XX
     MOV CONTROL, #$00   ; Disable IPL ROM and timers
 .proc main
-    MOV A, CPU0                 ; check for communication
+    MOV A, CPU0         ; check for communication
     BPL main            
-    MOV A, CPU0                 ; mask upper 4bits to determine index into jump table
+    MOV A, CPU0         ; mask upper 4bits to determine index into jump table
     AND A, #$0F                 
     ASL A
     MOV X, A
@@ -109,7 +109,7 @@ done:
     MOV A, CPU0     ; Mimic on Port 1
     MOV CPU1, A
 
-    MOV counter, #1 ; Process row immediately
+    MOV counter, #1 ; Process first row immediately
 
     MOV A, !PAT_HEAD
     MOV pathead, A
@@ -117,10 +117,10 @@ done:
     MOV A, !PAT_HEAD + 1
     MOV pathead + 1, A
     MOV frame + 1, A
-    
+
     MOV A, !NUM_CHAN
-    MOV r0, A     ; prepare chptrs
-    ASL r0
+    ASL A
+    MOV r0, A       ; prepare chptrs
     MOV Y, #0
     MOV X, #0
 :
@@ -130,13 +130,6 @@ done:
     INC X
     DEC r0
     BNE :-
-
-    MOV A, !INST_HEAD
-    MOV instptr, A
-    
-    MOV A, !INST_HEAD + 1
-    MOV instptr + 1, A
-   
 
     MOV CPU0, #0    ; Reset I/O Ports
     MOV CPU1, #0
@@ -148,6 +141,7 @@ op_table: ; opcode jump table
     .word opECHO, opPMOD, opNOISEFREQ, opVOL, opTICK, opNSLIDEUP, opNSLIDEDOWN, opDETUNE, opSTOP, opCHANEND, opADVFRAME
 ;--------------------------------------
 .proc driver_update ; unload shadow buffers
+; r0+r1 = temp pointer to channel data
 chnum = r2
 
     MOV A, CPU0     ; Mimic on Port 1
