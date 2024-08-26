@@ -131,6 +131,12 @@ done:
     DEC r0
     BNE :-
 
+    MOV A, !INST_HEAD
+    MOV instptr, A
+
+    MOV A, !INST_HEAD + 1
+    MOV instptr + 1, A
+    
     MOV CPU0, #0    ; Reset I/O Ports
     MOV CPU1, #0
     JMP !main
